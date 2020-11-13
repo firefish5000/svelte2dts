@@ -1,6 +1,6 @@
 {
   "name": "svelte2dts",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "out/svelte2dts.js",
   "bin": {
     "svelte2dts": "out/svelte2dts.js"
@@ -31,7 +31,13 @@
   "keywords": [
     "svelte",
     "typescript",
-    "preprocess"
+    "preprocess",
+    "ts",
+    "dts",
+    "d.ts",
+    ".d.ts",
+    "svelte.d.ts",
+    ".svelte.d.ts"
   ],
   "files": [
     "out"
