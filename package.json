@@ -1,6 +1,6 @@
 {
   "name": "svelte2dts",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "out/svelte2dts.js",
   "bin": {
     "svelte2dts": "out/svelte2dts.js"
@@ -30,7 +30,8 @@
   },
   "keywords": [
     "svelte",
-    "cli"
+    "typescript",
+    "preprocess"
   ],
   "files": [
     "out"
@@ -38,5 +39,10 @@
   "dependencies": {
     "commander": "^6.2.0",
     "magic-string": "^0.25.7"
+  },
+  "homepage": "https://github.com/firefish5000/svelte2dts#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firefish5000/svelte2dts.git"
   }
 }

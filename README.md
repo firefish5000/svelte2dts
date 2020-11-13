@@ -1,4 +1,11 @@
+# svelte2dts
+[![npm](https://img.shields.io/badge/npm-svelte2dts-red)](https://www.npmjs.com/package/svelte2dts)
+
+----
+Generate d.ts files from svelte files.
+
 # Usage
+
 ```sh
 # Install svelte2dts and its peer deps
 npm i -D svelte2dts svelte2tsx typescript
