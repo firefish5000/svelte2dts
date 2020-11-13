@@ -1,6 +1,6 @@
 {
   "name": "svelte2dts",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "main": "out/svelte2dts.js",
   "bin": {
     "svelte2dts": "out/svelte2dts.js"
@@ -22,10 +22,10 @@
     "eslint-plugin-import": "^2.22.1",
     "svelte2tsx": "^0.1.143",
     "tslib": "^2.0.3",
-    "typescript": "^4.2.0-dev.20201113"
+    "typescript": "^4.0"
   },
   "peerDependencies": {
-    "typescript": "^4.2.0-dev.20201112",
+    "typescript": "^4.0",
     "svelte2tsx": "^0.1.143"
   },
   "keywords": [
@@ -37,7 +37,8 @@
     "d.ts",
     ".d.ts",
     "svelte.d.ts",
-    ".svelte.d.ts"
+    ".svelte.d.ts",
+    "cli"
   ],
   "files": [
     "out"
