@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "CommonJS",
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable",
+      "ScriptHost"
+    ],
+    "types": ["node"],
+    "strict": true,
+    "outDir": "./out",
+    "esModuleInterop": true,
+    "moduleResolution": "Node",
+    "declaration": true
+  },
+  "include": ["src/**/*", "test/**/*"],
+  "exclude": ["node_modules/*", "public/*", "dist/*", ".svench/*", "out/*"],
+  "baseUrl": "src",
+}
