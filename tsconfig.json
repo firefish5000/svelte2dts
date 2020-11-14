@@ -13,7 +13,8 @@
     "outDir": "./out",
     "esModuleInterop": true,
     "moduleResolution": "Node",
-    "declaration": true
+    "declaration": true,
+    "rootDir": "./src"
   },
   "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules/*", "public/*", "dist/*", ".svench/*", "out/*"],

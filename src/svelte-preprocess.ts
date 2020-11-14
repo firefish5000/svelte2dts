@@ -34,7 +34,7 @@ interface PreprocessSvelteOptions {
   srcDir: string
   outDir: string
   strict: boolean
-  extensions: string[]
+  svelteExtensions: string[]
 }
 // eslint-disable-next-line import/prefer-default-export
 export async function preprocessSvelte({
@@ -43,63 +43,60 @@ export async function preprocessSvelte({
   ,autoGenerate = false
   ,outDir: outDirArg
   ,srcDir: srcDirArg
-  ,extensions = ['.svelte']
+  ,svelteExtensions = ['.svelte']
   ,strict = false
   ,runOnTs = false
   ,runOnJs = false
 }: PreprocessSvelteOptions): Promise<void> {
-  const componentPaths: string[] = []
+  const targetPaths: string[] = []
   const srcDir = path.resolve(srcDirArg)
   const outDir = path.resolve(outDirArg)
+  const targetExtensions = [
+    ...svelteExtensions
+    ,...(runOnTs ? ['.ts' ,'.tsx'] : [])
+    ,...(runOnJs ? ['.js' ,'.jsx'] : [])
+  ]
+  const isTargetPath = (filePath: string) => targetExtensions.some((ext) => filePath.endsWith(ext))
   for await (const filePath of walk(srcDir)) {
-    if (extensions.some((ext) => filePath.endsWith(ext))) {
-      componentPaths.push(filePath)
+    if (isTargetPath(filePath)) {
+      targetPaths.push(filePath)
     }
   }
   const { tsxMap ,extraFiles } = generateComponentDeclarations(
-    componentPaths
+    targetPaths
     ,srcDir
     ,outDir
     ,strict
     ,(componentPath) => {
       if (!autoGenerate) return false
-      if (extensions.some((ext) => componentPath.endsWith(ext))) {
-        return true
-      }
-      return false
+      return isTargetPath(componentPath)
     }
   )
 
   const createdFiles = new Map<string ,string>()
   for (const { dtsCode ,dest ,componentPath } of Object.values(tsxMap)) {
-    if (dtsCode !== undefined) {
-      if (
-        (fs.existsSync(dest) || createdFiles.has(dest))
-       && !overwrite
-      ) throw new Error(`Failed to write typings for ${relPathJson(componentPath)}. Typing file ${relPathJson(dest)} already exists!`)
-      createdFiles.set(dest ,componentPath)
-    }
-    else {
+    if (!dest.startsWith(outDir)) throw new Error(`Attempt to create typing file outside of declarationdir! ${relPathJson(componentPath)} -> ${relPathJson(dest)}`)
+    if (dtsCode === undefined) {
       console.error(`Failed to generate d.ts file for ${relPathJson(componentPath)}`)
     }
+    if (
+      (fs.existsSync(dest) || createdFiles.has(dest))
+       && !overwrite
+    ) throw new Error(`Failed to write typings for ${relPathJson(componentPath)}. Typing file ${relPathJson(dest)} already exists!`)
+    createdFiles.set(dest ,componentPath)
   }
   for (const { dtsCode ,dest ,componentPath } of Object.values(extraFiles)) {
-    if (!(runOnTs && ['.ts' ,'.tsx'].some((ext) => componentPath.endsWith(ext)))
-     || (runOnJs && ['.js' ,'.jsx'].some((ext) => componentPath.endsWith(ext)))
-    ) continue
-    if (!dest.startsWith(srcDir)) continue
-    const newDest = `${path.resolve(outDir)}${dest.slice(path.resolve(srcDir).length)}`
+    if (!isTargetPath(componentPath)) continue
+    if (!dest.startsWith(outDir)) throw new Error(`Attempt to create typing file outside of declarationdir! ${relPathJson(componentPath)} -> ${relPathJson(dest)}`)
 
-    if (dtsCode !== undefined) {
-      if (
-        (fs.existsSync(newDest) || createdFiles.has(newDest))
-       && !overwrite
-      ) throw new Error(`Failed to write typings for ${relPathJson(componentPath)}. Typing file ${relPathJson(newDest)} already exists!`)
-      createdFiles.set(newDest ,componentPath)
-    }
-    else {
+    if (dtsCode === undefined) {
       console.error(`Failed to generate d.ts file for ${relPathJson(componentPath)}`)
     }
+    if (
+      (fs.existsSync(dest) || createdFiles.has(dest))
+       && !overwrite
+    ) throw new Error(`Failed to write typings for ${relPathJson(componentPath)}. Typing file ${relPathJson(dest)} already exists!`)
+    createdFiles.set(dest ,componentPath)
   }
   // Write the d.ts files that we are interested in
   for (const { dtsCode ,dest ,componentPath ,code } of Object.values(tsxMap)) {
@@ -113,17 +110,15 @@ export async function preprocessSvelte({
     }
   }
   for (const { dtsCode ,dest ,componentPath ,code } of Object.values(extraFiles)) {
-    if (!(runOnTs && ['.ts' ,'.tsx'].some((ext) => componentPath.endsWith(ext)))
-     || (runOnJs && ['.js' ,'.jsx'].some((ext) => componentPath.endsWith(ext)))
-    ) continue
+    if (!isTargetPath(componentPath)) continue
     if (!dest.startsWith(srcDir)) continue
-    const newDest = `${path.resolve(outDir)}${dest.slice(path.resolve(srcDir).length)}`
+
     if (dtsCode === undefined) continue
 
-    console.log(conversionMsg(componentPath ,newDest ,dryRun))
+    console.log(conversionMsg(componentPath ,dest ,dryRun))
     if (!dryRun) {
-      fs.mkdirSync(path.dirname(newDest) ,{ recursive: true })
-      fs.writeFileSync(newDest ,dtsCode)
+      fs.mkdirSync(path.dirname(dest) ,{ recursive: true })
+      fs.writeFileSync(dest ,dtsCode)
     }
   }
 }

@@ -82,7 +82,7 @@ async function doAll(): Promise<void> {
     srcDir
     ,outDir
     ,runOnTs
-    ,extensions: ['.svelte']
+    ,svelteExtensions: ['.svelte']
     ,dryRun: isDryRun
     ,overwrite: canOverwrite
     ,autoGenerate: true
