@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import ts from 'typescript'
 import sv2tsx from 'svelte2tsx'
-import { relativePath ,relPathJson } from './utils'
+import { relativePath ,relPathJson ,tsCompilerConfig ,tsConfigDir ,tsConfigFilePath } from './utils'
 
 interface TsxMapping {
   code: string
@@ -71,7 +71,7 @@ export function generateComponentDeclarations(
   const genTsxPath = (filePath:string) => `${filePath}.tsx`
   const genTsxMapping = (filePath: string) => ({
     code: generateTsx(filePath ,strictMode)
-    ,dest: `${path.resolve(outDir)}${filePath.slice(path.resolve(srcDir).length)}.d.ts`
+    ,dest: `${path.resolve(outDir ,path.relative(tsConfigDir ,filePath))}.d.ts`
     ,componentPath: filePath
   } as TsxMapping)
 
@@ -89,8 +89,10 @@ export function generateComponentDeclarations(
 
   // Generate d.ts files
   const extraFiles = compileTsDeclaration(tsxMap ,{
-    declaration: true
+    ...tsCompilerConfig
+    ,declaration: true
     ,emitDeclarationOnly: true
+    ,declarationDir: outDir
   } ,(filePath ,fileExists) => {
     // FIXME: This is contrived. Steal whatever code ts is using to loop fileExist instead
     // Only claim tsx files
@@ -125,7 +127,7 @@ function compileTsDeclaration(files: TsxMap
   const host = ts.createCompilerHost(options)
   const extraFiles: TsxMap = {}
   host.writeFile = (fileName ,contents) => {
-    const file = Object.values(files).find((e) => e.componentPath === fileName.replace(/\.d\.ts/ ,''))
+    const file = Object.values(files).find((e) => e.dest === fileName)
     if (file !== undefined) {
       file.dtsCode = contents
     }

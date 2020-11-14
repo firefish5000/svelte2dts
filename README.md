@@ -25,8 +25,8 @@ npx svelte2dts --help
 ```json
 {
   ...
-  "svelte": "./out",
-  "types": "./types",
+  "svelte": "./preprocessed/src/index.js",
+  "types": "./types/src/MyComponent.d.ts",
   "script": {
     "svelte:preprocess": "echo 'TODO: preprocess files to ./out'",
     "ts:dts": "tsc --emitDeclarationOnly --declaration --outDir ./types",

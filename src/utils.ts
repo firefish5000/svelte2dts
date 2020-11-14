@@ -9,6 +9,7 @@ export const PACKAGE_NAME = 'svelte2dts'
 export const basePath = process.cwd()
 
 export const tsConfigFilePath = ts.findConfigFile(process.cwd() ,ts.sys.fileExists)
+export const tsConfigDir = path.resolve(path.dirname(tsConfigFilePath ?? './'))
 export const tsCompilerConfig: ts.CompilerOptions = ts.getDefaultCompilerOptions()
 
 interface FileSystemEntries {
@@ -16,9 +17,6 @@ interface FileSystemEntries {
   readonly directories: readonly string[]
 }
 type TsMatchFiles = (path: string ,extensions: readonly string[] | undefined ,excludes: readonly string[] | undefined ,includes: readonly string[] | undefined ,useCaseSensitiveFileNames: boolean ,currentDirectory: string ,depth: number | undefined ,getFileSystemEntries: (path: string) => FileSystemEntries ,realpath: (path: string) => string) => string[]
-// FIXME: ts rolls their own glob code and I am not sure how to find it
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const { matchFiles } = ts as any as {matchFiles: TsMatchFiles}
 
 if (tsConfigFilePath !== undefined) {
   // Read and apply tsconfig.json
@@ -34,6 +32,10 @@ if (tsConfigFilePath !== undefined) {
   if (typeof tsConfigReadResults.config?.compilerOptions === 'object') {
     Object.assign(tsCompilerConfig ,tsConfigReadResults.config.compilerOptions)
   }
+
+  // FIXME: ts rolls their own glob code and I am not sure how to find it
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // const { matchFiles } = ts as any as {matchFiles: TsMatchFiles}
 
   /* TODO: Consider using include/exclude globs
   matchFiles(
