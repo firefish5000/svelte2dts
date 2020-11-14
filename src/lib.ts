@@ -14,13 +14,18 @@ interface TsxMapping {
 }
 type TsxMap = Record<string ,TsxMapping>
 
-function generateTsx(srcPath:string) {
+function generateTsx(srcPath:string ,strictMode: boolean) {
   const file = fs.readFileSync(srcPath)
   // Generate the tsx code for the component
   const { code: tsxCode } = sv2tsx(file.toString('utf-8') ,{
     filename: srcPath
+    // Assume true.
+    // May need to parse it ourselves instead of using svelte2tsx
+    // Since they do not look at lang tag
+    // and lang can be different between script/module tags.
     ,isTsFile: true
-    // strictMode: true
+    // Assume true. If false, the usefullness of ts drops by 75%.
+    ,strictMode
   })
 
   const shimmedCode = '/// <reference types="svelte2tsx/svelte-shims" />\n'
@@ -56,13 +61,16 @@ interface RetType {
 
 // Runs on multiple components at a time to reduce wasted cycles.
 // shouldGenerateTypings = (filePath)=>filePath.endsWith('.svelte')
-export function generateComponentDeclarations(componentPaths: string[]
+export function generateComponentDeclarations(
+  componentPaths: string[]
   ,srcDir: string
   ,outDir: string
-  ,shouldGenerateTypings: (filePath:string)=>boolean = () => false): RetType {
+  ,strictMode: boolean
+  ,shouldGenerateTypings: (filePath:string)=>boolean = () => false
+): RetType {
   const genTsxPath = (filePath:string) => `${filePath}.tsx`
   const genTsxMapping = (filePath: string) => ({
-    code: generateTsx(filePath)
+    code: generateTsx(filePath ,strictMode)
     ,dest: `${path.resolve(outDir)}${filePath.slice(path.resolve(srcDir).length)}.d.ts`
     ,componentPath: filePath
   } as TsxMapping)

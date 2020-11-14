@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 
-import { relativePath ,relPathJson } from './utils'
+import { relPathJson } from './utils'
 import { generateComponentDeclarations } from './lib'
 
 async function* walk(dir: string): AsyncGenerator<string> {
@@ -17,9 +17,9 @@ async function* walk(dir: string): AsyncGenerator<string> {
 
 function conversionMsg(srcPath: string ,destPath: string ,dryRun: boolean) {
   return `${
-    JSON.stringify(relativePath(srcPath))
+    relPathJson(srcPath)
   } -> ${
-    JSON.stringify(relativePath(destPath))
+    relPathJson(destPath)
   }.${
     dryRun ? ' (dry run)' : ''
   }`
@@ -33,6 +33,7 @@ interface PreprocessSvelteOptions {
   runOnJs: boolean
   srcDir: string
   outDir: string
+  strict: boolean
   extensions: string[]
 }
 // eslint-disable-next-line import/prefer-default-export
@@ -43,6 +44,7 @@ export async function preprocessSvelte({
   ,outDir: outDirArg
   ,srcDir: srcDirArg
   ,extensions = ['.svelte']
+  ,strict = false
   ,runOnTs = false
   ,runOnJs = false
 }: PreprocessSvelteOptions): Promise<void> {
@@ -58,6 +60,7 @@ export async function preprocessSvelte({
     componentPaths
     ,srcDir
     ,outDir
+    ,strict
     ,(componentPath) => {
       if (!autoGenerate) return false
       if (extensions.some((ext) => componentPath.endsWith(ext))) {

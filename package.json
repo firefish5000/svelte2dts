@@ -26,7 +26,8 @@
   },
   "peerDependencies": {
     "typescript": "^4.0",
-    "svelte2tsx": "^0.1.143"
+    "svelte2tsx": "^0.1.143",
+    "svelte": "^3.28.0"
   },
   "keywords": [
     "svelte",
