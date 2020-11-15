@@ -45,6 +45,17 @@
     "svelte2tsx": "^0.1.143",
     "svelte": "^3.28.0"
   },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": false
+    },
+    "svelte2tsx": {
+      "optional": false
+    },
+    "svelte": {
+      "optional": false
+    }
+  },
   "engines": {
     "node": ">=10.1.0"
   },
