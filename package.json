@@ -1,7 +1,7 @@
 {
   "name": "svelte2dts",
   "description": "Generate d.ts files from svelte files",
-  "version": "0.2.3",
+  "version": "0.2.5",
   "author": "firefish5000 @firefish5000",
   "bin": {
     "svelte2dts": "./bin/run"
@@ -60,8 +60,8 @@
     "node": ">=10.1.0"
   },
   "files": [
-    "/bin",
-    "/out"
+    "bin/**/*",
+    "out/**/*"
   ],
   "homepage": "https://github.com/firefish5000/svelte2dts",
   "keywords": [
@@ -85,7 +85,7 @@
   "scripts": {
     "posttest": "eslint . --ext .ts --config .eslintrc",
     "clean": "rm -rf out/*",
-    "prepublishOnly": "run-p clean",
+    "prepublishOnly": "run-s clean build",
     "build": "run-p build:ts build:docs",
     "build:ts": "tsc -b",
     "build:docs": "oclif-dev readme",
