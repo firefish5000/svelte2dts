@@ -55,6 +55,12 @@ Be sure to set declarationDir and outDir to different locations.
   },
 }
 ```
+
+Note that with the above setup, you no longer need to specify `--declarationDir` in the command!
+```sh
+npx svelte2dts --overwrite --runOnTS ./src
+```
+
 ## Purpose
 The only type of svelte components that are truly sharable are
 ones written in pure svelte, with no preprocessors such as typescript.
