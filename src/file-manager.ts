@@ -10,7 +10,7 @@ async function* walk(dir: string): AsyncGenerator<string> {
   }
   for await (const d of await fs.promises.opendir(dir)) {
     const entry = path.join(dir ,d.name)
-    if (d.isDirectory()) yield* await walk(entry)
+    if (d.isDirectory()) yield* walk(entry)
     else if (d.isFile()) yield entry
   }
 }
@@ -31,7 +31,7 @@ interface PreprocessSvelteOptions {
   autoGenerate: boolean
   runOnTs: boolean
   runOnJs: boolean
-  srcDir: string
+  srcDirs: string[]
   outDir: string
   strict: boolean
   svelteExtensions: string[]
@@ -43,30 +43,32 @@ export async function preprocessSvelte({
   ,overwrite = false
   ,autoGenerate = false
   ,outDir: outDirArg
-  ,srcDir: srcDirArg
+  ,srcDirs: srcDirArgs
   ,svelteExtensions = ['.svelte']
   ,strict = false
   ,runOnTs = false
   ,runOnJs = false
 }: PreprocessSvelteOptions): Promise<void> {
   const targetPaths: string[] = []
-  const srcDir = path.resolve(srcDirArg)
-  const outDir = path.resolve(outDirArg)
+  const srcDirs = srcDirArgs
+  const outDir = outDirArg
   const targetExtensions = [
     ...svelteExtensions
     ,...(runOnTs ? ['.ts' ,'.tsx'] : [])
     ,...(runOnJs ? ['.js' ,'.jsx'] : [])
   ]
   const isTargetPath = (filePath: string) => targetExtensions.some((ext) => filePath.endsWith(ext))
-  for await (const filePath of walk(srcDir)) {
-    if (isTargetPath(filePath)) {
-      targetPaths.push(filePath)
+  for await (const srcDir of srcDirs) {
+    for await (const filePath of walk(srcDir)) {
+      if (isTargetPath(filePath)) {
+        targetPaths.push(filePath)
+      }
     }
   }
-  const { tsxMap ,extraFiles } = generateComponentDeclarations(
+  const { extraFiles } = generateComponentDeclarations(
     targetPaths
     ,svelteExtensions
-    ,srcDir
+    ,srcDirs
     ,outDir
     ,strict
     ,(componentPath) => {
@@ -79,12 +81,12 @@ export async function preprocessSvelte({
   for (const { virtualSourcePath: dest ,code: dtsCode } of extraFiles.values()) {
     if (!dest.startsWith(outDir)) throw new Error(`Attempt to create typing file outside of declarationdir! ${relPathJson(dest)}`)
     if (dtsCode === undefined) {
-      console.error(`Failed to generate d.ts file for ${relPathJson(dest)}`)
+      console.error(`Failed to generate d.ts file ${relPathJson(dest)}`)
     }
     if (
       (fs.existsSync(dest) || createdFiles.has(dest))
        && !overwrite
-    ) throw new Error(`Typing file ${relPathJson(dest)} already exists!`)
+    ) throw new Error(`Typing file ${relPathJson(dest)} already exists! (consider enabling '--overwrite')`)
     createdFiles.set(dest ,'')
   }
 
@@ -93,7 +95,7 @@ export async function preprocessSvelte({
     if (dtsCode === undefined) continue
     if (!dest.startsWith(outDir)) continue
 
-    console.log(conversionMsg('someComponentPath' ,dest ,dryRun))
+    console.log(`Writing ${relPathJson(dest)}${dryRun ? ' (dry run)' : ''}`)
     if (!dryRun) {
       fs.mkdirSync(path.dirname(dest) ,{ recursive: true })
       fs.writeFileSync(dest ,dtsCode)

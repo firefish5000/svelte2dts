@@ -2,6 +2,8 @@ module.exports = {
   'parser': '@typescript-eslint/parser'
   ,'plugins': ['@typescript-eslint' ,'import']
   ,'extends': [
+    "oclif",
+    "oclif-typescript",
     '@tdi/base'
   ]
   ,'parserOptions': {

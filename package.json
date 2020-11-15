@@ -1,35 +1,58 @@
 {
   "name": "svelte2dts",
-  "version": "0.1.3",
-  "main": "out/svelte2dts.js",
+  "description": "Generate d.ts files from svelte files",
+  "version": "0.2.0",
+  "author": "firefish5000 @firefish5000",
   "bin": {
-    "svelte2dts": "out/svelte2dts.js"
+    "svelte2dts": "./bin/run"
   },
-  "author": "firefish5000",
-  "scripts": {
-    "build": "tsc",
-    "start": "node out/svelte2dts.js",
-    "prepare": "npm run build"
+  "bugs": "https://github.com/firefish5000/svelte2dts/issues",
+  "dependencies": {
+    "@oclif/command": "^1.8.0",
+    "@oclif/config": "^1.17.0",
+    "@oclif/plugin-help": "^3.2.0",
+    "tslib": "^2.0.3",
+    "commander": "^6.2.0",
+    "itiriri": "^2.0.1",
+    "magic-string": "^0.25.7"
   },
   "devDependencies": {
-    "@tdi/eslint-config-base": "^0.1.0",
+    "@oclif/dev-cli": "^1.23.0",
+    "@oclif/test": "^1.2.7",
+    "@types/chai": "^4.2.14",
+    "@types/mocha": "^8.0.4",
     "@types/node": "^14.14.2",
+    "npm-run-all": "*",
+    "chai": "^4.2.0",
+    "eslint": "^7.13.0",
+    "eslint-config-oclif": "^3.1.0",
+    "eslint-config-oclif-typescript": "^0.2.0",
+    "mocha": "^8.2.1",
+    "nyc": "^15.1.0",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.5",
+    "@tdi/eslint-config-base": "^0.1.0",
     "@typescript-eslint/eslint-plugin": "^4.5.0",
     "@typescript-eslint/parser": "^4.5.0",
-    "eslint": "^7.12.0",
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-config-airbnb-typescript": "^12.0.0",
     "eslint-plugin-import": "^2.22.1",
-    "svelte2tsx": "^0.1.143",
-    "tslib": "^2.0.3",
-    "typescript": "^4.0",
-    "svelte": "^3.28.0"
+    "svelte": "^3.28.0",
+    "svelte2tsx": "^0.1.143"
   },
   "peerDependencies": {
     "typescript": "^4.0",
     "svelte2tsx": "^0.1.143",
     "svelte": "^3.28.0"
   },
+  "engines": {
+    "node": ">=10.1.0"
+  },
+  "files": [
+    "/bin",
+    "/out"
+  ],
+  "homepage": "https://github.com/firefish5000/svelte2dts",
   "keywords": [
     "svelte",
     "typescript",
@@ -42,17 +65,22 @@
     ".svelte.d.ts",
     "cli"
   ],
-  "files": [
-    "out"
-  ],
-  "dependencies": {
-    "commander": "^6.2.0",
-    "itiriri": "^2.0.1",
-    "magic-string": "^0.25.7"
+  "license": "MIT",
+  "main": "lib/index.js",
+  "oclif": {
+    "bin": "svelte2dts"
   },
-  "homepage": "https://github.com/firefish5000/svelte2dts#readme",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/firefish5000/svelte2dts.git"
-  }
+  "repository": "firefish5000/svelte2dts",
+  "scripts": {
+    "posttest": "eslint . --ext .ts --config .eslintrc",
+    "clean": "rm -rf out/*",
+    "prepublishOnly": "run-p clean",
+    "build": "run-p build:ts build:docs",
+    "build:ts": "tsc -b",
+    "build:docs": "oclif-dev readme",
+    "prepare": "run-p build",
+    "test": "nyc --extension .ts mocha --forbid-only \"test/**/*.test.ts\"",
+    "version": "oclif-dev readme && git add README.md"
+  },
+  "types": "out/index.d.ts"
 }
