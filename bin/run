@@ -9,5 +9,5 @@ if (dev) {
   require('ts-node').register({project})
 }
 
-require(`../${dev ? 'src' : 'out'}`).run()
+require(`${dev ? '../src' : 'svelte2dts'}`).run()
 .catch(require('@oclif/errors/handle'))

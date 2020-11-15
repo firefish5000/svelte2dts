@@ -1,7 +1,7 @@
 {
   "name": "svelte2dts",
   "description": "Generate d.ts files from svelte files",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "author": "firefish5000 @firefish5000",
   "bin": {
     "svelte2dts": "./bin/run"
@@ -77,7 +77,7 @@
     "cli"
   ],
   "license": "MIT",
-  "main": "lib/index.js",
+  "main": "out/index.js",
   "oclif": {
     "bin": "svelte2dts"
   },
