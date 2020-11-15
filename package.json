@@ -1,7 +1,7 @@
 {
   "name": "svelte2dts",
   "description": "Generate d.ts files from svelte files",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": "firefish5000 @firefish5000",
   "bin": {
     "svelte2dts": "./bin/run"
