@@ -84,4 +84,4 @@ have to:
 Your `types` directory should not contain anything other than `.d.ts` and `.svelte.d.ts` files. If both `Component.svelte` and `Component.svelte.d.ts` exist, the svelte plugin will load the types from `Component.svelte`. To further the confusion, typescript will properly load types from the `Component.svelte.d.ts` file, causing types to work in `.ts` files even though they would not in `.svelte` files.
 
 The solution is to specify both
-the `svelte` and `types` field in `package.json` [as documented here](#package.json) and to ensure there are no `.svelte` files in the types directory.
+the `svelte` and `types` field in `package.json` [as documented here](#packagejson) and to ensure there are no `.svelte` files in the types directory.
