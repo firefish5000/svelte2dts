@@ -4,9 +4,9 @@ svelte2dts
 Generate d.ts files from svelte files, creating truly sharable and well typed components!
 
 [![License](https://img.shields.io/static/v1?style=flat&logo=github&label=Github&message=svelte2dts)](https://github.com/firefish5000/svelte2dts)
-[![Version](https://img.shields.io/npm/v/svelte2dts.svg)](https://npmjs.org/package/svelte2dts)
-[![Downloads/week](https://img.shields.io/npm/dw/svelte2dts.svg)](https://npmjs.org/package/svelte2dts)
-[![License](https://img.shields.io/npm/l/svelte2dts.svg)](https://github.com/firefish5000/svelte2dts/blob/master/package.json)
+[![Version](https://img.shields.io/npm/v/svelte2dts)](https://npmjs.org/package/svelte2dts)
+[![Downloads/week](https://img.shields.io/npm/dw/svelte2dts)](https://npmjs.org/package/svelte2dts)
+[![License](https://img.shields.io/npm/l/svelte2dts)](https://github.com/firefish5000/svelte2dts/blob/master/package.json)
 
 <!-- toc -->
 * [Install svelte2dts and its peer deps](#install-svelte2dts-and-its-peer-deps)
