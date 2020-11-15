@@ -36,6 +36,7 @@ interface PreprocessSvelteOptions {
   strict: boolean
   svelteExtensions: string[]
 }
+
 // eslint-disable-next-line import/prefer-default-export
 export async function preprocessSvelte({
   dryRun = false
@@ -64,6 +65,7 @@ export async function preprocessSvelte({
   }
   const { tsxMap ,extraFiles } = generateComponentDeclarations(
     targetPaths
+    ,svelteExtensions
     ,srcDir
     ,outDir
     ,strict
@@ -74,51 +76,28 @@ export async function preprocessSvelte({
   )
 
   const createdFiles = new Map<string ,string>()
-  for (const { dtsCode ,dest ,componentPath } of Object.values(tsxMap)) {
-    if (!dest.startsWith(outDir)) throw new Error(`Attempt to create typing file outside of declarationdir! ${relPathJson(componentPath)} -> ${relPathJson(dest)}`)
+  for (const { virtualSourcePath: dest ,code: dtsCode } of extraFiles.values()) {
+    if (!dest.startsWith(outDir)) throw new Error(`Attempt to create typing file outside of declarationdir! ${relPathJson(dest)}`)
     if (dtsCode === undefined) {
-      console.error(`Failed to generate d.ts file for ${relPathJson(componentPath)}`)
+      console.error(`Failed to generate d.ts file for ${relPathJson(dest)}`)
     }
     if (
       (fs.existsSync(dest) || createdFiles.has(dest))
        && !overwrite
-    ) throw new Error(`Failed to write typings for ${relPathJson(componentPath)}. Typing file ${relPathJson(dest)} already exists!`)
-    createdFiles.set(dest ,componentPath)
+    ) throw new Error(`Typing file ${relPathJson(dest)} already exists!`)
+    createdFiles.set(dest ,'')
   }
-  for (const { dtsCode ,dest ,componentPath } of Object.values(extraFiles)) {
-    if (!isTargetPath(componentPath)) continue
-    if (!dest.startsWith(outDir)) throw new Error(`Attempt to create typing file outside of declarationdir! ${relPathJson(componentPath)} -> ${relPathJson(dest)}`)
 
-    if (dtsCode === undefined) {
-      console.error(`Failed to generate d.ts file for ${relPathJson(componentPath)}`)
-    }
-    if (
-      (fs.existsSync(dest) || createdFiles.has(dest))
-       && !overwrite
-    ) throw new Error(`Failed to write typings for ${relPathJson(componentPath)}. Typing file ${relPathJson(dest)} already exists!`)
-    createdFiles.set(dest ,componentPath)
-  }
   // Write the d.ts files that we are interested in
-  for (const { dtsCode ,dest ,componentPath ,code } of Object.values(tsxMap)) {
+  for (const { virtualSourcePath: dest ,code: dtsCode } of extraFiles.values()) {
     if (dtsCode === undefined) continue
+    if (!dest.startsWith(outDir)) continue
 
-    console.log(conversionMsg(componentPath ,dest ,dryRun))
+    console.log(conversionMsg('someComponentPath' ,dest ,dryRun))
     if (!dryRun) {
       fs.mkdirSync(path.dirname(dest) ,{ recursive: true })
       fs.writeFileSync(dest ,dtsCode)
       // fs.writeFileSync(`${dest}.tsx` ,code)
-    }
-  }
-  for (const { dtsCode ,dest ,componentPath ,code } of Object.values(extraFiles)) {
-    if (!isTargetPath(componentPath)) continue
-    if (!dest.startsWith(srcDir)) continue
-
-    if (dtsCode === undefined) continue
-
-    console.log(conversionMsg(componentPath ,dest ,dryRun))
-    if (!dryRun) {
-      fs.mkdirSync(path.dirname(dest) ,{ recursive: true })
-      fs.writeFileSync(dest ,dtsCode)
     }
   }
 }

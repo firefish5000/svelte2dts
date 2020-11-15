@@ -29,9 +29,9 @@ npx svelte2dts --help
   "types": "./types/src/MyComponent.d.ts",
   "script": {
     "svelte:preprocess": "echo 'TODO: preprocess files to ./out'",
-    "ts:dts": "tsc --emitDeclarationOnly --declaration --outDir ./types",
-    "ts:svelte2dts": "svelte2dts --srcDir ./src --outDir ./types",
-    "prepare": "run-p svelte:preprocess ts:dts ts:svelte2dts"
+    "build": "",
+    "build:svelte2dts": "svelte2dts --overwrite ",
+    "prepare": "run-p svelte:preprocess svelte2dts"
   }
   ...
 }

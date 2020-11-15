@@ -22,7 +22,8 @@
     "eslint-plugin-import": "^2.22.1",
     "svelte2tsx": "^0.1.143",
     "tslib": "^2.0.3",
-    "typescript": "^4.0"
+    "typescript": "^4.0",
+    "svelte": "^3.28.0"
   },
   "peerDependencies": {
     "typescript": "^4.0",
@@ -46,6 +47,7 @@
   ],
   "dependencies": {
     "commander": "^6.2.0",
+    "itiriri": "^2.0.1",
     "magic-string": "^0.25.7"
   },
   "homepage": "https://github.com/firefish5000/svelte2dts#readme",
