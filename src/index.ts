@@ -69,7 +69,7 @@ class Svelte2Dts extends Command {
     ,runOnTs: oFlags.boolean({
       'default': false
       ,'allowNo': true
-      ,'description': 'Create d.ts files for all ts files. If false, we will only generate d.ts files for .svelte files and their dependencies'
+      ,'description': 'Create d.ts files for all ts files. If false, we will only generate d.ts files for svelte files'
     })
   }
 

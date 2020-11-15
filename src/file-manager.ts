@@ -54,7 +54,7 @@ export async function preprocessSvelte({
   const outDir = outDirArg
   const targetExtensions = [
     ...svelteExtensions
-    ,...(runOnTs ? ['.ts' ,'.tsx'] : [])
+    ,...((true || runOnTs) ? ['.ts' ,'.tsx'] : [])
     ,...(runOnJs ? ['.js' ,'.jsx'] : [])
   ]
   const isTargetPath = (filePath: string) => targetExtensions.some((ext) => filePath.endsWith(ext))
@@ -94,8 +94,11 @@ export async function preprocessSvelte({
   for (const { virtualSourcePath: dest ,code: dtsCode } of extraFiles.values()) {
     if (dtsCode === undefined) continue
     if (!dest.startsWith(outDir)) continue
-
+    if (!runOnTs
+      && !svelteExtensions.some((ext) => dest.endsWith(`${ext}.d.ts`))
+    ) continue
     console.log(`Writing ${relPathJson(dest)}${dryRun ? ' (dry run)' : ''}`)
+
     if (!dryRun) {
       fs.mkdirSync(path.dirname(dest) ,{ recursive: true })
       fs.writeFileSync(dest ,dtsCode)
