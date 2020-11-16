@@ -3,21 +3,21 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  Lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 14
-      - run: 'npm ci && npm run lint'
+  #Lint:
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - uses: actions/checkout@v1
+  #    - uses: actions/setup-node@v1
+  #      with:
+  #        node-version: 14
+  #    - run: 'npm ci && npm run lint'
 
   Tests:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node-version: [12, 14]
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        node-version: [14]
+        os: [windows-latest]
 
     steps:
       - run: git config --global core.autocrlf false
@@ -32,5 +32,5 @@ jobs:
       - uses: actions/upload-artifact@v2.2.1
         if: failure()
         with:
-          path: '*'
+          path: 'test/fixtures/**/*'
           name: ${{ runner.os }}-${{ matrix.node-version }}-output
