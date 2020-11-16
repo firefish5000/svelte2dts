@@ -10,7 +10,7 @@ const cleanupFiles = (files: string[]):void => {
   })
 }
 const setupProject = (project: string):void => {
-  spawnSync('npm' ,['i'] ,{
+  spawnSync('npm' ,['ci'] ,{
     cwd: project
   })
 }

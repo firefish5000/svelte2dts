@@ -87,14 +87,14 @@
   "repository": "firefish5000/svelte2dts",
   "scripts": {
     "lint": "eslint --fix --format vscode ./src ./test",
-    "posttest": "run-p lint",
-    "clean": "rm -rf out/*",
+    "clean": "git clean -fX ./out ./_build_",
     "prepublishOnly": "run-s clean build",
     "build": "run-p build:ts build:docs",
     "build:ts": "tsc -b",
     "build:docs": "oclif-dev readme",
     "prepare": "run-p build",
-    "test": "NODE_ENV=test jest",
+    "test": "run-s test:ci lint",
+    "test:ci": "NODE_ENV=test jest",
     "version": "oclif-dev readme && git add README.md"
   },
   "types": "out/index.d.ts"
