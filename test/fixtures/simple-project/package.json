@@ -1,0 +1,29 @@
+{
+  "name": "simple-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "out/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "run-p",
+    "check": "run-p check:typescript",
+    "check:typescript": "tsc --noEmit",
+    "clean": "run-p clean:preprocessed",
+    "clean:preprocessed": "if [ -d \"./preprocessed\" ] ; then rm -r \"./preprocessed\"; fi",
+    "dev": "run-p",
+    "preprocess": "run-s clean:preprocessed preprocess:svelte preprocess:typescript",
+    "preprocess:svelte": "npx @tdi/svcli --preprocess",
+    "preprocess:typescript": "tsc --declaration --outDir './preprocessed'"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@tdi/svcli": "0.0.24",
+    "@tsconfig/svelte": "^1.0.10",
+    "npm-run-all": "^4.1.5",
+    "svelte": "^3.29.7",
+    "tslib": "^2.0.3",
+    "typescript": "^4.0.5"
+  },
+  "svelte": "./preprocessed/index.js"
+}

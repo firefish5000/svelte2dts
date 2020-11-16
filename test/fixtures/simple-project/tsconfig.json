@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "strict": true,
+    "baseUrl": "src",
+    "types": [
+      "svelte"
+    ],
+    "outDir": "./out",
+    "declarationDir": "./types",
+    "declaration": true
+  },
+  "extends": "@tsconfig/svelte/tsconfig.json",
+  "include": [
+    "src/**/*",
+  ],
+  "exclude": [
+    "node_modules/**/*",
+    "public/**/*",
+    "dist/**/*",
+    "out/**/*"
+  ],
+}
