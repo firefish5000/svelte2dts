@@ -38,4 +38,4 @@ jobs:
             '*'
             !'**/node_modules'
             !'**/*.tsbuildinfo'
-          key: ${{ runner.os }}-${{ runner.node-version }}-output
+          name: ${{ runner.os }}-${{ matrix.node-version }}-output
