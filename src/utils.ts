@@ -12,13 +12,6 @@ export const tsConfigFilePath = ts.findConfigFile(process.cwd() ,ts.sys.fileExis
 export const tsConfigDir = path.resolve(path.dirname(tsConfigFilePath ?? './'))
 export const tsCompilerConfig: ts.CompilerOptions = ts.getDefaultCompilerOptions()
 
-export const tsConfigDeclarationDir: undefined | string = (
-  tsConfigFilePath !== undefined
-  && tsCompilerConfig.declarationDir !== undefined
-)
-  ? path.resolve(path.dirname(tsConfigFilePath) ,tsCompilerConfig.declarationDir)
-  : undefined
-
 if (tsConfigFilePath !== undefined) {
   // Read and apply tsconfig.json
   const tsConfigReadResults = ts.readConfigFile(tsConfigFilePath ,ts.sys.readFile) as {
@@ -53,3 +46,10 @@ if (tsConfigFilePath !== undefined) {
   )
   */
 }
+
+export const tsConfigDeclarationDir: undefined | string = (
+  tsConfigFilePath !== undefined
+  && tsCompilerConfig.declarationDir !== undefined
+)
+  ? path.resolve(path.dirname(tsConfigFilePath) ,tsCompilerConfig.declarationDir)
+  : undefined

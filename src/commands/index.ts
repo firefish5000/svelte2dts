@@ -1,7 +1,7 @@
 import { Command ,flags as oFlags } from '@oclif/command'
 import path from 'path'
 import fs from 'fs'
-import { relativePath ,relPathJson ,tsCompilerConfig ,tsConfigDeclarationDir } from '../utils'
+import { relativePath ,relPathJson ,tsCompilerConfig ,tsConfigDeclarationDir ,tsConfigDir ,tsConfigFilePath } from '../utils'
 import { preprocessSvelte } from '../file-manager'
 
 class Svelte2Dts extends Command {
@@ -89,6 +89,9 @@ class Svelte2Dts extends Command {
       this.clean()
     }
 
+    if (tsConfigFilePath !== undefined) {
+      this.log(`Using tsconfig ${tsConfigFilePath}`)
+    }
     this.log(`Generating declarations for svelte files ${
       JSON.stringify(srcDirs.map(relativePath))
     } -> ${

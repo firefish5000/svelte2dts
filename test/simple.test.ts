@@ -1,47 +1,54 @@
-import { execSync ,exec } from 'child_process'
+import { execSync ,spawnSync } from 'child_process'
 import path from 'path'
 import fs from 'fs'
 
-const binPath = '../../../bin/svelte2dts'
+const rootPath = path.resolve(process.cwd())
+const binPath = path.join(rootPath ,'./bin/svelte2dts')
 
-describe('svelte2dts command' ,() => {
-  beforeEach(() => {
-
+const cleanupFiles = (files:string[]) => {
+  spawnSync('git' ,['clean' ,'-fX' ,...files] ,{
+    cwd: rootPath
   })
+}
+const setupProject = (project:string) => {
+  spawnSync('npm' ,['i'] ,{
+    cwd: project
+  })
+}
+describe('svelte2dts command' ,() => {
   describe('on simple project' ,() => {
-    const simpleProjectPath = path.resolve(__dirname ,'./fixtures/simple-project')
+    const simpleProjectPath = path.resolve(rootPath ,'./test/fixtures/simple-project')
     const typeDir1 = path.join(simpleProjectPath ,'./types')
     const typeDir2 = path.join(simpleProjectPath ,'./preprocessed')
     const typeDirs = [typeDir1 ,typeDir2]
-    let args = './src'
-    beforeEach(() => {
-      for (const typeDir of typeDirs) {
-        fs.rmSync(typeDir ,{
-          recursive: true
-          ,force: true
-        })
-      }
+    beforeAll(() => {
+      setupProject(simpleProjectPath)
     })
+
     describe('inferring from tsconfig.json' ,() => {
+      const args = ['./src']
+      beforeAll(() => cleanupFiles(typeDirs))
       it('runs ok' ,() => {
-        expect(() => execSync(`node ${binPath} ${args}` ,{
+        expect(() => spawnSync('node' ,[binPath ,...args] ,{
           cwd: simpleProjectPath
         })).not.toThrow()
       })
       it('generates valid svelte.d.ts files' ,() => {
-        const a = fs.readFileSync(path.join(typeDir1 ,'./A.svelte.d.ts'))
+        const a = fs.readFileSync(path.join(typeDir1 ,'./A.svelte.d.ts') ,{ encoding: 'utf8' })
         expect(a).toMatchInlineSnapshot()
       })
     })
-    args = `--declarationDir ${JSON.stringify(typeDir2)} ./src`
-    describe(`with ${args}` ,() => {
+    const args2 = ['--declarationDir' ,typeDir2 ,'./src']
+    describe(`with ${JSON.stringify(args2)}` ,() => {
+      const args = args2
+      beforeAll(() => cleanupFiles(typeDirs))
       it('runs ok' ,() => {
-        expect(() => execSync(`node ${binPath} ${args}` ,{
+        expect(() => spawnSync('node' ,[binPath ,...args] ,{
           cwd: simpleProjectPath
         })).not.toThrow()
       })
       it('generates valid svelte.d.ts files' ,() => {
-        const a = fs.readFileSync(path.join(typeDir2 ,'./A.svelte.d.ts'))
+        const a = fs.readFileSync(path.join(typeDir2 ,'./A.svelte.d.ts') ,{ encoding: 'utf8' })
         expect(a).toMatchInlineSnapshot()
       })
     })

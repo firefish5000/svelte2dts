@@ -6,3 +6,6 @@
 /tmp
 node_modules
 **/tsconfig.tsbuildinfo
+/_build_
+/test/fixtures/**/preprocessed
+/test/fixtures/**/types

@@ -9,7 +9,7 @@
     ],
     "outDir": "./out",
     "declarationDir": "./types",
-    "declaration": true
+    "declaration": true,
   },
   "extends": "@tsconfig/svelte/tsconfig.json",
   "include": [

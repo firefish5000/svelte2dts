@@ -10,13 +10,18 @@
     ],
     "types": ["node"],
     "strict": true,
-    "outDir": "./out",
+    "outDir": "./_build_",
     "esModuleInterop": true,
     "moduleResolution": "Node",
     "declaration": true,
-    "rootDir": "./src",
-    "composite": true
+    "rootDir": "./",
+    "composite": true,
     //"baseUrl": "src",
   },
-  "include": ["src/**/*"],
+  "references": [
+    {"path": "./src" },
+    { "path": "./test" }
+  ],
+  "include": [""],
+  "exclude": ["src","test"]
 }

@@ -4,7 +4,7 @@
   "version": "0.2.8",
   "author": "firefish5000 @firefish5000",
   "bin": {
-    "svelte2dts": "./bin/run"
+    "svelte2dts": "./bin/svelte2dts"
   },
   "bugs": "https://github.com/firefish5000/svelte2dts/issues",
   "dependencies": {
@@ -33,7 +33,7 @@
     "eslint-plugin-import": "^2.22.1",
     "jest": "^26.6.3",
     "npm-run-all": "^4.1.5",
-    "nyc": "^15.1.0",
+    "prettier": "^2.1.2",
     "svelte": "^3.28.0",
     "svelte2tsx": "^0.1.143",
     "ts-jest": "^26.4.4",
@@ -83,14 +83,14 @@
   },
   "repository": "firefish5000/svelte2dts",
   "scripts": {
-    "posttest": "eslint . --ext .ts --config .eslintrc",
+    "noposttest": "eslint ./src --ext .ts --config .eslintrc",
     "clean": "rm -rf out/*",
     "prepublishOnly": "run-s clean build",
     "build": "run-p build:ts build:docs",
     "build:ts": "tsc -b",
     "build:docs": "oclif-dev readme",
     "prepare": "run-p build",
-    "test": "nyc --extension .ts mocha --forbid-only \"test/**/*.test.ts\"",
+    "test": "NODE_ENV=test jest",
     "version": "oclif-dev readme && git add README.md"
   },
   "types": "out/index.d.ts"
