@@ -2,7 +2,7 @@
 import path from 'path'
 import ts from 'typescript'
 
-export const relativePath = (str: string) => `./${path.relative('./' ,str)}`
+export const relativePath = (str: string) => `${path.relative('./' ,str)}`
 export const relPathJson = (filePath:string) => JSON.stringify(relativePath(filePath))
 
 export const PACKAGE_NAME = 'svelte2dts'
