@@ -3,7 +3,7 @@ import fs from 'fs'
 import ts from 'typescript'
 import sv2tsx from 'svelte2tsx'
 import iti from 'itiriri'
-import { relativePath ,relPathJson ,tsCompilerConfig ,tsConfigDir ,tsConfigFilePath } from './utils'
+import { relativePath ,relPathJson ,tsCompilerConfig } from './utils'
 
 interface TsxMappingBase {
   sourcePath: string
