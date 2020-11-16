@@ -8,6 +8,7 @@ module.exports = {
   ]
   ,'parserOptions': {
     ecmaVersion: 2021
+    ,project: ['./**/tsconfig.json']
     ,sourceType: 'module'
     ,ecmaFeatures: {
       globalReturn: false

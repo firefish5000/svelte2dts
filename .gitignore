@@ -5,3 +5,4 @@
 /out
 /tmp
 node_modules
+**/tsconfig.tsbuildinfo

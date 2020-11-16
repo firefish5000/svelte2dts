@@ -12,11 +12,12 @@ export const tsConfigFilePath = ts.findConfigFile(process.cwd() ,ts.sys.fileExis
 export const tsConfigDir = path.resolve(path.dirname(tsConfigFilePath ?? './'))
 export const tsCompilerConfig: ts.CompilerOptions = ts.getDefaultCompilerOptions()
 
-interface FileSystemEntries {
-  readonly files: readonly string[]
-  readonly directories: readonly string[]
-}
-type TsMatchFiles = (path: string ,extensions: readonly string[] | undefined ,excludes: readonly string[] | undefined ,includes: readonly string[] | undefined ,useCaseSensitiveFileNames: boolean ,currentDirectory: string ,depth: number | undefined ,getFileSystemEntries: (path: string) => FileSystemEntries ,realpath: (path: string) => string) => string[]
+export const tsConfigDeclarationDir: undefined | string = (
+  tsConfigFilePath !== undefined
+  && tsCompilerConfig.declarationDir !== undefined
+)
+  ? path.resolve(path.dirname(tsConfigFilePath) ,tsCompilerConfig.declarationDir)
+  : undefined
 
 if (tsConfigFilePath !== undefined) {
   // Read and apply tsconfig.json
@@ -36,6 +37,7 @@ if (tsConfigFilePath !== undefined) {
   // FIXME: ts rolls their own glob code and I am not sure how to find it
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   // const { matchFiles } = ts as any as {matchFiles: TsMatchFiles}
+  // type TsMatchFiles = (path: string ,extensions: readonly string[] | undefined ,excludes: readonly string[] | undefined ,includes: readonly string[] | undefined ,useCaseSensitiveFileNames: boolean ,currentDirectory: string ,depth: number | undefined ,getFileSystemEntries: (path: string) => FileSystemEntries ,realpath: (path: string) => string) => string[]
 
   /* TODO: Consider using include/exclude globs
   matchFiles(

@@ -15,6 +15,7 @@
     "moduleResolution": "Node",
     "declaration": true,
     "rootDir": "./src",
+    "composite": true
     //"baseUrl": "src",
   },
   "include": ["src/**/*"],

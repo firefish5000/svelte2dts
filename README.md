@@ -8,28 +8,21 @@ Generate d.ts files from svelte files, creating truly sharable and well typed co
 [![Downloads/week](https://img.shields.io/npm/dw/svelte2dts)](https://npmjs.org/package/svelte2dts)
 [![License](https://img.shields.io/npm/l/svelte2dts)](https://github.com/firefish5000/svelte2dts/blob/master/package.json)
 
-<!-- toc -->
-* [Install svelte2dts and its peer deps](#install-svelte2dts-and-its-peer-deps)
-* [Be sure to install first!](#be-sure-to-install-first)
-* [Read all svelte files from ./src and generate d.ts files in ./types](#read-all-svelte-files-from-src-and-generate-dts-files-in-types)
-* [Show help text](#show-help-text)
-<!-- tocstop -->
-
 ## Installation
+Install svelte2dts and its peer deps
 ```sh
-# Install svelte2dts and its peer deps
 npm i -D svelte2dts svelte2tsx typescript
 ```
 ## Usage
 After installing, you can invoke the command via npx or package.json.
-### Via CLI
-```sh
-# Be sure to install first!
-npm i -D svelte2dts svelte2tsx typescript
-# Read all svelte files from ./src and generate d.ts files in ./types
-npx svelte2dts --overwrite --runOnTS --declarationDir ./types ./src
 
-# Show help text
+### Via CLI
+Read all svelte files from `./src` and generate .d.ts files in `./types`
+```sh
+npx svelte2dts --overwrite --runOnTS --declarationDir ./types ./src
+```
+Show help
+```sh
 npx svelte2dts --help
 ```
 ## Configuring
