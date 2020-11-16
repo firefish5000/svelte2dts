@@ -1,13 +1,13 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "noEmit": false,
+    "noEmit": true,
     "types": ["jest", "node"],
     "composite": true,
   },
   "references": [
     {"path": "../src"}
   ],
-  "include": ["**/*.test.ts","*.test.ts", "."],
+  "include": ["**/*.test.ts","*.test.ts"],
   "exclude": ["fixtures"]
 }

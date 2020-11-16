@@ -15,16 +15,6 @@ async function* walk(dir: string): AsyncGenerator<string> {
   }
 }
 
-function conversionMsg(srcPath: string ,destPath: string ,dryRun: boolean) {
-  return `${
-    relPathJson(srcPath)
-  } -> ${
-    relPathJson(destPath)
-  }.${
-    dryRun ? ' (dry run)' : ''
-  }`
-}
-
 interface PreprocessSvelteOptions {
   dryRun: boolean
   overwrite: boolean
@@ -68,7 +58,6 @@ export async function preprocessSvelte({
   const { extraFiles } = generateComponentDeclarations(
     targetPaths
     ,svelteExtensions
-    ,srcDirs
     ,outDir
     ,strict
     ,(componentPath) => {
@@ -98,6 +87,7 @@ export async function preprocessSvelte({
 
   // Write the d.ts files that we are interested in
   for (const { virtualSourcePath: dest ,code: dtsCode } of extraFiles.values()) {
+    /* eslint-disable no-continue */
     if (dtsCode === undefined) continue
     if (!dest.startsWith(outDir)) continue
     if (!runOnTs
@@ -108,7 +98,6 @@ export async function preprocessSvelte({
     if (!dryRun) {
       fs.mkdirSync(path.dirname(dest) ,{ recursive: true })
       fs.writeFileSync(dest ,dtsCode)
-      // fs.writeFileSync(`${dest}.tsx` ,code)
     }
   }
 }

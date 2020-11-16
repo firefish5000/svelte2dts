@@ -1,7 +1,7 @@
 import { Command ,flags as oFlags } from '@oclif/command'
 import path from 'path'
 import fs from 'fs'
-import { relativePath ,relPathJson ,tsCompilerConfig ,tsConfigDeclarationDir ,tsConfigDir ,tsConfigFilePath } from '../utils'
+import { relativePath ,relPathJson ,tsCompilerConfig ,tsConfigDeclarationDir ,tsConfigFilePath } from '../utils'
 import { preprocessSvelte } from '../file-manager'
 
 class Svelte2Dts extends Command {

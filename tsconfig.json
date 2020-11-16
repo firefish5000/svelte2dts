@@ -20,7 +20,6 @@
   },
   "references": [
     {"path": "./src" },
-    { "path": "./test" }
   ],
   "include": [""],
   "exclude": ["src","test"]
