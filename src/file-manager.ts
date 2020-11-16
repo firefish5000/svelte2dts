@@ -81,10 +81,10 @@ export async function preprocessSvelte({
   for (const { virtualSourcePath: dest ,code: dtsCode } of extraFiles.values()) {
     const relativeDest = path.relative(outDir ,dest)
     if (
-      relativeDest.length > 0
-      && !relativeDest.startsWith('..')
-      && !path.isAbsolute(relativeDest)
-    ) throw new Error(`Attempt to create typing file outside of declarationdir! ${relPathJson(dest)}`)
+      relativeDest.length === 0
+      || relativeDest.startsWith('..')
+      || path.isAbsolute(relativeDest)
+    ) throw new Error(`Attempt to create typing file outside of declarationDir! ${relPathJson(dest)}`)
 
     if (dtsCode === undefined) {
       console.error(`Failed to generate d.ts file ${relPathJson(dest)}`)
