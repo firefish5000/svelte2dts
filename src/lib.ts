@@ -66,17 +66,20 @@ function compileTsDeclaration(
   // Create a Program with an in-memory emit
   const host = ts.createCompilerHost(options)
   const extraFiles = new Map<string ,TsxMappingVirtual>()
-  host.writeFile = (fileName ,contents) => {
-    extraFiles.set(fileName ,{
+  host.writeFile = (origFilePath ,contents) => {
+    const filePath = path.resolve(origFilePath)
+
+    extraFiles.set(filePath ,{
       code: contents
-      ,virtualSourcePath: fileName
+      ,virtualSourcePath: filePath
     })
   }
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const originalReadFile = host.readFile
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const originalFileExists = host.fileExists
-  host.fileExists = (filePath) => {
+  host.fileExists = (origFilePath) => {
+    const filePath = path.resolve(origFilePath)
     let foundTarget = false
     const isTargetCheck = () => {
       if (!foundTarget) {
@@ -98,7 +101,8 @@ function compileTsDeclaration(
     return isTargetCheck() || originalFileExists.call(host ,filePath)
   }
   // eslint-disable-next-line arrow-body-style
-  host.readFile = (filePath) => {
+  host.readFile = (origFilePath) => {
+    const filePath = path.resolve(origFilePath)
     // const asVirtual = files[filePath]?.code !== undefined
     // if (!filePath.includes('node_modules')) console.log(`Reading${asVirtual ? ' (virtual)' : ''}...`,relativePath(filePath))
     return targetFiles
