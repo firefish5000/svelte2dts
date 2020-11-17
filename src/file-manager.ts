@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 
-import { relPathJson } from './utils'
+import { isSubpathOf ,relPathJson } from './utils'
 import { generateComponentDeclarations } from './lib'
 
 async function* walk(dir: string): AsyncGenerator<string> {
@@ -68,12 +68,7 @@ export async function preprocessSvelte({
 
   const createdFiles = new Map<string ,string>()
   for (const { virtualSourcePath: dest ,code: dtsCode } of extraFiles.values()) {
-    const relativeDest = path.relative(outDir ,dest)
-    if (
-      relativeDest.length === 0
-      || relativeDest.startsWith('..')
-      || path.isAbsolute(relativeDest)
-    ) throw new Error(`Attempt to create typing file outside of declarationDir! ${relPathJson(dest)}`)
+    if (!isSubpathOf(dest ,outDir)) throw new Error(`Attempt to create typing file outside of declarationDir! ${relPathJson(dest)}`)
 
     if (dtsCode === undefined) {
       console.error(`Failed to generate d.ts file ${relPathJson(dest)}`)
@@ -89,7 +84,6 @@ export async function preprocessSvelte({
   for (const { virtualSourcePath: dest ,code: dtsCode } of extraFiles.values()) {
     /* eslint-disable no-continue */
     if (dtsCode === undefined) continue
-    if (!dest.startsWith(outDir)) continue
     if (!runOnTs
       && !svelteExtensions.some((ext) => dest.endsWith(`${ext}.d.ts`))
     ) continue

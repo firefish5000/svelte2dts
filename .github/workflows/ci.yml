@@ -1,0 +1,40 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  Lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 14
+      - run: 'npm ci && npm run lint'
+
+  Tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node-version: [12, 14]
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm i
+      - run: npm run test:ci
+        env:
+          CI: true
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          path: |
+            'test/fixtures/**/types'
+            'test/fixtures/**/preprocessed'
+            !'**/node_modules'
+            !'**/*.tsbuildinfo'
+          name: ${{ runner.os }}-${{ matrix.node-version }}-output

@@ -53,3 +53,13 @@ export const tsConfigDeclarationDir: undefined | string = (
 )
   ? path.resolve(path.dirname(tsConfigFilePath) ,tsCompilerConfig.declarationDir)
   : undefined
+
+export const isSubpathOf = (child:string ,parent:string) => {
+  const relativeDest = path.relative(parent ,child)
+  if (
+    relativeDest.length === 0
+    || relativeDest.startsWith('..')
+    || path.isAbsolute(relativeDest)
+  ) return false
+  return true
+}

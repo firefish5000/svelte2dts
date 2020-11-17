@@ -1,7 +1,7 @@
 {
   "name": "svelte2dts",
   "description": "Generate d.ts files from svelte files",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "author": "firefish5000 @firefish5000",
   "bin": {
     "svelte2dts": "./bin/svelte2dts"
@@ -25,6 +25,7 @@
     "@typescript-eslint/eslint-plugin": "^4.8.0",
     "@typescript-eslint/parser": "^4.8.0",
     "chai": "^4.2.0",
+    "cross-env": "^7.0.2",
     "eslint": "^7.13.0",
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-config-airbnb-typescript": "^12.0.0",
@@ -94,7 +95,7 @@
     "build:docs": "oclif-dev readme",
     "prepare": "run-p build",
     "test": "run-s test:ci lint",
-    "test:ci": "NODE_ENV=test jest",
+    "test:ci": "cross-env NODE_ENV=test jest",
     "version": "oclif-dev readme && git add README.md"
   },
   "types": "out/index.d.ts"

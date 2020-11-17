@@ -2,6 +2,7 @@ import fs from 'fs'
 import ts from 'typescript'
 import sv2tsx from 'svelte2tsx'
 import iti from 'itiriri'
+import path from 'path'
 import { relativePath ,relPathJson ,tsCompilerConfig } from './utils'
 
 interface TsxMappingBase {
@@ -65,17 +66,20 @@ function compileTsDeclaration(
   // Create a Program with an in-memory emit
   const host = ts.createCompilerHost(options)
   const extraFiles = new Map<string ,TsxMappingVirtual>()
-  host.writeFile = (fileName ,contents) => {
-    extraFiles.set(fileName ,{
+  host.writeFile = (origFilePath ,contents) => {
+    const filePath = path.resolve(origFilePath)
+
+    extraFiles.set(filePath ,{
       code: contents
-      ,virtualSourcePath: fileName
+      ,virtualSourcePath: filePath
     })
   }
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const originalReadFile = host.readFile
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const originalFileExists = host.fileExists
-  host.fileExists = (filePath) => {
+  host.fileExists = (origFilePath) => {
+    const filePath = path.resolve(origFilePath)
     let foundTarget = false
     const isTargetCheck = () => {
       if (!foundTarget) {
@@ -97,7 +101,8 @@ function compileTsDeclaration(
     return isTargetCheck() || originalFileExists.call(host ,filePath)
   }
   // eslint-disable-next-line arrow-body-style
-  host.readFile = (filePath) => {
+  host.readFile = (origFilePath) => {
+    const filePath = path.resolve(origFilePath)
     // const asVirtual = files[filePath]?.code !== undefined
     // if (!filePath.includes('node_modules')) console.log(`Reading${asVirtual ? ' (virtual)' : ''}...`,relativePath(filePath))
     return targetFiles
@@ -145,7 +150,7 @@ function compileTsDeclaration(
     for (const sourceFile of sourceFiles) {
       /* eslint-disable no-continue */
       const targetFile = iti(targetFiles.values())
-        .find((e) => e.virtualSourcePath === sourceFile.fileName)
+        .find((e) => e.virtualSourcePath === path.resolve(sourceFile.fileName))
       if (targetFile === undefined) continue
       ts.forEachChild(sourceFile ,(node) => {
         if (ts.isClassDeclaration(node)
@@ -232,10 +237,6 @@ export function generateComponentDeclarations(
     if (!shouldGenerateTypings(componentPath)) return
 
     if (!requiresVirtualization(componentPath)) return
-
-    // Only claim files in src dir
-    // if (!srcDirs.some((srcDir) => filePath.startsWith(srcDir))) return
-    // console.log('Adding virtual' ,relativePath(filePath))
 
     // If we made it here, then we want to create a virtual file!
     const newMapping = genTsxMapping(componentPath)
