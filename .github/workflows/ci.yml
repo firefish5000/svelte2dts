@@ -35,7 +35,6 @@ jobs:
           path: |
             'test/fixtures/**/types'
             'test/fixtures/**/preprocessed'
-            '*'
             !'**/node_modules'
             !'**/*.tsbuildinfo'
           name: ${{ runner.os }}-${{ matrix.node-version }}-output
