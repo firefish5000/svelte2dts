@@ -3,10 +3,11 @@ svelte2dts
 
 Generate d.ts files from svelte files, creating truly sharable and well typed components!
 
-[![License](https://img.shields.io/static/v1?style=flat&logo=github&label=Github&message=svelte2dts)](https://github.com/firefish5000/svelte2dts)
-[![Version](https://img.shields.io/npm/v/svelte2dts)](https://npmjs.org/package/svelte2dts)
-[![Downloads/week](https://img.shields.io/npm/dw/svelte2dts)](https://npmjs.org/package/svelte2dts)
-[![License](https://img.shields.io/npm/l/svelte2dts)](https://github.com/firefish5000/svelte2dts/blob/master/package.json)
+[![License](https://img.shields.io/static/v1?logo=github&label&message=svelte2dts&style=for-the-badge&logoColor=f00&color=040)](https://github.com/firefish5000/svelte2dts)
+[![Version](https://img.shields.io/npm/v/svelte2dts?style=for-the-badge&logo=npm&label=npm)](https://npmjs.org/package/svelte2dts)
+[![Downloads/week](https://img.shields.io/npm/dw/svelte2dts?style=for-the-badge)](https://npmjs.org/package/svelte2dts)
+[![License](https://img.shields.io/npm/l/svelte2dts?style=for-the-badge)](https://github.com/firefish5000/svelte2dts/blob/master/package.json)
+[![GitHub Workflow](https://img.shields.io/github/workflow/status/firefish5000/svelte2dts/CI?style=for-the-badge&logo=github&label=Workflows&logoColor=red)](https://github.com/firefish5000/svelte2dts)
 
 ## Installation
 Install svelte2dts and its peer deps
