@@ -2,6 +2,7 @@ import fs from 'fs'
 import ts from 'typescript'
 import sv2tsx from 'svelte2tsx'
 import iti from 'itiriri'
+import path from 'path'
 import { relativePath ,relPathJson ,tsCompilerConfig } from './utils'
 
 interface TsxMappingBase {
@@ -145,7 +146,7 @@ function compileTsDeclaration(
     for (const sourceFile of sourceFiles) {
       /* eslint-disable no-continue */
       const targetFile = iti(targetFiles.values())
-        .find((e) => e.virtualSourcePath === sourceFile.fileName)
+        .find((e) => e.virtualSourcePath === path.resolve(sourceFile.fileName))
       if (targetFile === undefined) continue
       ts.forEachChild(sourceFile ,(node) => {
         if (ts.isClassDeclaration(node)
@@ -232,10 +233,6 @@ export function generateComponentDeclarations(
     if (!shouldGenerateTypings(componentPath)) return
 
     if (!requiresVirtualization(componentPath)) return
-
-    // Only claim files in src dir
-    // if (!srcDirs.some((srcDir) => filePath.startsWith(srcDir))) return
-    // console.log('Adding virtual' ,relativePath(filePath))
 
     // If we made it here, then we want to create a virtual file!
     const newMapping = genTsxMapping(componentPath)
