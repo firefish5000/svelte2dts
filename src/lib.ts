@@ -207,6 +207,28 @@ function createHost({
   return host
 }
 
+const oldOne: (program: ts.Program) => ts.TransformerFactory<ts.SourceFile> = (program) => (ctx) => (sourceFile) => {
+  const checker = program.getTypeChecker()
+  ts.forEachChild(sourceFile ,(node) => {
+    if (ts.isClassDeclaration(node)
+    && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.ExportKeyword) === true
+    && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.DefaultKeyword) === true
+    ) {
+      const someType = node.heritageClauses?.[0].types[0]
+      if (
+        someType !== undefined
+        && someType.kind === ts.SyntaxKind.ExpressionWithTypeArguments
+      ) {
+        const componentType = checker.getTypeAtLocation(someType)
+        const typeString = checker.typeToString(componentType)
+
+        console.log(typeString)
+      }
+    }
+  })
+  return sourceFile
+}
+
 interface CompileTsDeclarationsParams {
   targetFiles: string[]
   compilerOptions: ts.CompilerOptions
@@ -226,11 +248,33 @@ export function compileTsDeclarations({
     ,writeFile
   })
   // Fix svelte tsx output to something typescript likes better
-  const programEmit = ts.createProgram(targetFiles ,{
-    ...compilerOptions ,emitDeclarationOnly: false
-  } ,host)
+  const programEmit = ts.createProgram(targetFiles ,compilerOptions ,host)
+  const checker = programEmit.getTypeChecker()
+  for (const sourceFile of programEmit.getSourceFiles()) {
+    ts.forEachChild(sourceFile ,(node) => {
+      if (ts.isClassDeclaration(node)
+    && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.ExportKeyword) === true
+    && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.DefaultKeyword) === true
+      ) {
+        const someType = node.heritageClauses?.[0].types[0]
+        if (
+          someType !== undefined
+        && someType.kind === ts.SyntaxKind.ExpressionWithTypeArguments
+        ) {
+          const componentType = checker.getTypeAtLocation(someType)
+          const typeString = checker.typeToString(componentType)
+
+          console.log(`--- ${sourceFile.fileName} ---\n` ,typeString)
+        }
+      }
+    })
+  }
+
   programEmit.emit(undefined ,undefined ,undefined ,undefined ,{
-    before: [fixTsx(programEmit) as ts.TransformerFactory<ts.SourceFile>]
+    before: [
+      // oldOne(programEmit)
+      // ,fixTsx(programEmit) as ts.TransformerFactory<ts.SourceFile>
+    ]
     // after: [fixTsx(programEmit)],
     // afterDeclarations: [fixTsx(programEmit)]
   })
