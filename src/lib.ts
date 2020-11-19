@@ -95,7 +95,7 @@ function generateTsx(srcPath:string ,strictMode: boolean):string {
   const shimmedCode = '/// <reference types="svelte2tsx/svelte-shims" />\n'
   + '/// <reference types="svelte2tsx/svelte-jsx" />\n'
   + `${tsxCode}`
-  // console.log(`--gentsx--${srcPath}--\n` ,shimmedCode)
+  console.log(`--gentsx--${srcPath}--\n` ,shimmedCode ,'\n----')
 
   return shimmedCode
 }
@@ -111,42 +111,43 @@ const fixTsx: (program: ts.Program) => ts.TransformerFactory<ts.SourceFile | ts.
       return ts.visitEachChild(sourceNode ,(node) => {
         // console.log('HERE----\n' ,node)
 
-        if (ts.isClassDeclaration(node)
+        // Only look at default export class declarations
+        if (!(ts.isClassDeclaration(node)
           && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.ExportKeyword) === true
           && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.DefaultKeyword) === true
-        ) {
-          const heritageClause = node.heritageClauses?.[0]
-          if (heritageClause === undefined) return node
-          const heritageType = heritageClause.types[0]
+        )) return node
 
-          if (ts.isExpressionWithTypeArguments(heritageType)) {
-            const componentType = checker.getTypeAtLocation(heritageType)
-            // console.log(componentType)
+        // with the heritage clause
+        const heritageClause = node.heritageClauses?.[0]
+        if (heritageClause === undefined) return node
+        const heritageType = heritageClause.types[0]
+        if (!ts.isExpressionWithTypeArguments(heritageType)) return node
 
-            const newTypeNode = checker.typeToTypeNode(componentType ,undefined ,undefined)
-            if (newTypeNode === undefined) throw new Error(`Failed to generate typing for ${relPathJson(sourceFile.getSourceFile().fileName)} node ${JSON.stringify(heritageClause)}`)
+        // Extract the svelte2tsx type
+        const componentType = checker.getTypeAtLocation(heritageType)
+        // console.log(componentType)
 
-            // FIXME: Figure out the typescript wizardry necessary to fix the class....
-            // const newHeritage = ctx.factory.updateHeritageClause(node.heritageClauses![0], )
-            // node.heritageClauses= [  ]
-            // return node
-            return ts.visitEachChild(node ,(heritageClause) => {
-              if (!ts.isHeritageClause(heritageClause)) return heritageClause
-              return ts.visitEachChild(heritageClause ,(heritageType) => {
-                if (!ts.isExpressionWithTypeArguments(heritageType)) return heritageType
-                // console.log('got---\n' ,heritageType)
-                return ts.visitEachChild(heritageType ,(someNode) => {
-                  // console.log('got---\n' ,someNode)
-                  if (!ts.isIdentifier(someNode)) return someNode
-                  console.log(checker.typeToString(componentType))
-                  return ctx.factory.createIdentifier(checker.typeToString(componentType))
-                }
-                ,ctx)
-              } ,ctx)
-            } ,ctx)
-          }
-        }
-        return node
+        const newTypeNode = checker.typeToTypeNode(componentType ,undefined ,undefined)
+        if (newTypeNode === undefined) throw new Error(`Failed to generate typing for ${relPathJson(sourceFile.getSourceFile().fileName)} node ${JSON.stringify(heritageClause)}`)
+
+        // FIXME: Figure out the typescript wizardry necessary to fix the class....
+        // const newHeritage = ctx.factory.updateHeritageClause(node.heritageClauses![0], )
+        // node.heritageClauses= [  ]
+        // return node
+        return ts.visitEachChild(node ,(heritageClause) => {
+          if (!ts.isHeritageClause(heritageClause)) return heritageClause
+          return ts.visitEachChild(heritageClause ,(heritageType) => {
+            if (!ts.isExpressionWithTypeArguments(heritageType)) return heritageType
+            // console.log('got---\n' ,heritageType)
+            return ts.visitEachChild(heritageType ,(someNode) => {
+              // console.log('got---\n' ,someNode)
+              if (!ts.isIdentifier(someNode)) return someNode
+              console.log(checker.typeToString(componentType))
+              return ctx.factory.createIdentifier(checker.typeToString(componentType))
+            }
+            ,ctx)
+          } ,ctx)
+        } ,ctx)
       } ,ctx)
     })
   }
@@ -211,7 +212,7 @@ function createHost({
   return host
 }
 
-const oldOne: (program: ts.Program) => ts.TransformerFactory<ts.SourceFile> = (program) => (ctx) => (sourceFile) => {
+const oldOne: (program: ts.Program) => ts.TransformerFactory<ts.SourceFile | ts.Bundle> = (program) => (ctx) => (sourceFile) => {
   const checker = program.getTypeChecker()
   ts.forEachChild(sourceFile ,(node) => {
     if (ts.isClassDeclaration(node)
@@ -252,10 +253,32 @@ export function compileTsDeclarations({
     ,writeFile
   })
   // Fix svelte tsx output to something typescript likes better
-  const programEmit = ts.createProgram(targetFiles ,compilerOptions ,host)
-  programEmit.emit(undefined ,undefined ,undefined ,undefined ,{
-    // before: [fixTsx(programEmit) as ts.TransformerFactory<ts.SourceFile>]
-    // after: [fixTsx(programEmit)],
-    afterDeclarations: [fixTsx(programEmit)]
+  const program = ts.createProgram(targetFiles ,compilerOptions
+    ,host)
+  const checker = program.getTypeChecker()
+  for (const sourceFile of program.getSourceFiles()) {
+    ts.forEachChild(sourceFile ,(node) => {
+      if (ts.isClassDeclaration(node)
+    && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.ExportKeyword) === true
+    && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.DefaultKeyword) === true
+      ) {
+        const someType = node.heritageClauses?.[0].types[0]
+        if (
+          someType !== undefined
+        && someType.kind === ts.SyntaxKind.ExpressionWithTypeArguments
+        ) {
+          const componentType = checker.getTypeAtLocation(someType)
+          const typeString = checker.typeToString(componentType)
+
+          console.log(typeString)
+        }
+      }
+    })
+  }
+
+  program.emit(undefined ,undefined ,undefined ,undefined ,{
+    // before: [oldOne(program) as ts.TransformerFactory<ts.SourceFile>]
+    // after: [fixTsx(program)],
+    // afterDeclarations: [fixTsx(program)]
   })
 }
