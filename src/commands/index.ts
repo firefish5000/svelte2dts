@@ -1,6 +1,7 @@
 import { Command ,flags as oFlags } from '@oclif/command'
 import path from 'path'
 import fs from 'fs'
+import ts from 'typescript'
 import { relativePath ,relPathJson ,tsCompilerConfig ,tsConfigDeclarationDir ,tsConfigFilePath } from '../utils'
 import { preprocessSvelte } from '../file-manager'
 
@@ -97,6 +98,8 @@ class Svelte2Dts extends Command {
     } -> ${
       relPathJson(outDir)
     }.${dryRun ? ' (dry run)' : ''}`)
+    tsCompilerConfig.strict = strict
+    tsCompilerConfig.emitDeclarationOnly = true
 
     await preprocessSvelte({
       srcDirs
@@ -107,7 +110,7 @@ class Svelte2Dts extends Command {
       ,overwrite
       ,autoGenerate: true
       ,runOnJs: false
-      ,strict
+      ,compilerOptions: tsCompilerConfig
     })
   }
 }

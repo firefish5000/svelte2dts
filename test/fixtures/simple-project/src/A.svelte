@@ -1,7 +1,12 @@
 <script lang="ts">
-export let name:string
-export let toggle:boolean = true
-export let undef:boolean|undefined
+export let requiredString:string
+export let optionalToggleWithDefault:boolean = true
+export let optionalToggleNoDefault:boolean|undefined
+export let requiredToggle:boolean
+export const readonlyObject = {
+  some: 2,
+  items: 'car'
+}
 </script>
 
 

@@ -4,12 +4,12 @@ import fs from 'fs'
 
 const rootPath = path.resolve(process.cwd())
 const binPath = path.join(rootPath ,'./bin/svelte2dts')
-const cleanupFiles = (files: string[]):void => {
+const cleanupFiles = (files: string[]): void => {
   spawnSync('git' ,['clean' ,'-fX' ,...files] ,{
     cwd: rootPath
   })
 }
-const setupProject = (project: string):void => {
+const setupProject = (project: string): void => {
   spawnSync('npm' ,['ci'] ,{
     cwd: project
   })
@@ -41,15 +41,30 @@ describe('svelte2dts command' ,() => {
         expect(a).toMatchInlineSnapshot(`
           "/// <reference types=\\"svelte2tsx/svelte-shims\\" />
           export default class A__SvelteComponent_ extends Svelte2TsxComponent<{
-              name: string;
-              toggle?: boolean | undefined;
-              undef: boolean | undefined;
-          }, {
-              [evt: string]: CustomEvent<any>;
+              requiredString: string;
+              optionalToggleWithDefault?: boolean | undefined;
+              optionalToggleNoDefault: boolean | undefined;
+              requiredToggle: boolean;
+              readonlyObject?: {
+                  some: number;
+                  items: string;
+              } | undefined;
           }, {}> {
           }
           "
         `)
+      })
+      it('copies svelte.d.ts files' ,() => {
+        const b = fs.readFileSync(path.join(typeDir1 ,'./B.svelte.d.ts') ,{
+          encoding: 'utf8'
+        })
+        expect(b).toMatchInlineSnapshot()
+      })
+      it('copies svelte.d.ts files instead of generating new ones' ,() => {
+        const b = fs.readFileSync(path.join(typeDir1 ,'./C.svelte.d.ts') ,{
+          encoding: 'utf8'
+        })
+        expect(b).toMatchInlineSnapshot()
       })
     })
     const args2 = ['--declarationDir' ,typeDir2 ,'./src']
@@ -68,11 +83,14 @@ describe('svelte2dts command' ,() => {
         expect(a).toMatchInlineSnapshot(`
           "/// <reference types=\\"svelte2tsx/svelte-shims\\" />
           export default class A__SvelteComponent_ extends Svelte2TsxComponent<{
-              name: string;
-              toggle?: boolean | undefined;
-              undef: boolean | undefined;
-          }, {
-              [evt: string]: CustomEvent<any>;
+              requiredString: string;
+              optionalToggleWithDefault?: boolean | undefined;
+              optionalToggleNoDefault: boolean | undefined;
+              requiredToggle: boolean;
+              readonlyObject?: {
+                  some: number;
+                  items: string;
+              } | undefined;
           }, {}> {
           }
           "
