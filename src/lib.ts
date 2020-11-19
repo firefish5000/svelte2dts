@@ -38,10 +38,10 @@ function areFlagsSet(item: ExtType ,flags: ExtType): boolean {
 }
 
 function getSvelteExtensionFromVirtual(filePath:string ,svelteExtensions:string[]) {
-  return svelteExtensions.find((ext) => filePath.endsWith(`${ext}.ts`))
+  return svelteExtensions.find((ext) => filePath.endsWith(`${ext}.tsx`))
 }
 function getSveltePathFromVirtual(filePath:string) {
-  return filePath.slice(0 ,-3)
+  return filePath.slice(0 ,-4)
 }
 
 function shouldCreateVirtual(componentPath: string):boolean {
@@ -66,8 +66,8 @@ function shouldCreateVirtual(componentPath: string):boolean {
 function isVirtual(filePath: string ,svelteExtensions: string[]) {
   const extType = getExtType(filePath ,svelteExtensions)
 
-  // if we are looking at a svelte.ts path
-  if (areFlagsSet(extType ,ExtType.SvelteTs)) {
+  // if we are looking at a svelte.tsx path
+  if (areFlagsSet(extType ,ExtType.SvelteTsx)) {
     const sveltePath = getSveltePathFromVirtual(filePath)
 
     // Report it as a virtual if a svelte.d.ts path does not exists
@@ -95,6 +95,7 @@ function generateTsx(srcPath:string ,strictMode: boolean):string {
   const shimmedCode = '/// <reference types="svelte2tsx/svelte-shims" />\n'
   + '/// <reference types="svelte2tsx/svelte-jsx" />\n'
   + `${tsxCode}`
+  // console.log(`--gentsx--${srcPath}--\n` ,shimmedCode)
 
   return shimmedCode
 }
@@ -120,13 +121,15 @@ const fixTsx: (program: ts.Program) => ts.TransformerFactory<ts.SourceFile | ts.
 
           if (ts.isExpressionWithTypeArguments(heritageType)) {
             const componentType = checker.getTypeAtLocation(heritageType)
-            console.log(componentType)
+            // console.log(componentType)
 
             const newTypeNode = checker.typeToTypeNode(componentType ,undefined ,undefined)
             if (newTypeNode === undefined) throw new Error(`Failed to generate typing for ${relPathJson(sourceFile.getSourceFile().fileName)} node ${JSON.stringify(heritageClause)}`)
 
             // FIXME: Figure out the typescript wizardry necessary to fix the class....
-
+            // const newHeritage = ctx.factory.updateHeritageClause(node.heritageClauses![0], )
+            // node.heritageClauses= [  ]
+            // return node
             return ts.visitEachChild(node ,(heritageClause) => {
               if (!ts.isHeritageClause(heritageClause)) return heritageClause
               return ts.visitEachChild(heritageClause ,(heritageType) => {
@@ -135,6 +138,7 @@ const fixTsx: (program: ts.Program) => ts.TransformerFactory<ts.SourceFile | ts.
                 return ts.visitEachChild(heritageType ,(someNode) => {
                   // console.log('got---\n' ,someNode)
                   if (!ts.isIdentifier(someNode)) return someNode
+                  console.log(checker.typeToString(componentType))
                   return ctx.factory.createIdentifier(checker.typeToString(componentType))
                 }
                 ,ctx)
@@ -249,33 +253,9 @@ export function compileTsDeclarations({
   })
   // Fix svelte tsx output to something typescript likes better
   const programEmit = ts.createProgram(targetFiles ,compilerOptions ,host)
-  const checker = programEmit.getTypeChecker()
-  for (const sourceFile of programEmit.getSourceFiles()) {
-    ts.forEachChild(sourceFile ,(node) => {
-      if (ts.isClassDeclaration(node)
-    && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.ExportKeyword) === true
-    && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.DefaultKeyword) === true
-      ) {
-        const someType = node.heritageClauses?.[0].types[0]
-        if (
-          someType !== undefined
-        && someType.kind === ts.SyntaxKind.ExpressionWithTypeArguments
-        ) {
-          const componentType = checker.getTypeAtLocation(someType)
-          const typeString = checker.typeToString(componentType)
-
-          console.log(`--- ${sourceFile.fileName} ---\n` ,typeString)
-        }
-      }
-    })
-  }
-
   programEmit.emit(undefined ,undefined ,undefined ,undefined ,{
-    before: [
-      // oldOne(programEmit)
-      // ,fixTsx(programEmit) as ts.TransformerFactory<ts.SourceFile>
-    ]
+    // before: [fixTsx(programEmit) as ts.TransformerFactory<ts.SourceFile>]
     // after: [fixTsx(programEmit)],
-    // afterDeclarations: [fixTsx(programEmit)]
+    afterDeclarations: [fixTsx(programEmit)]
   })
 }
