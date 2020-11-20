@@ -95,7 +95,7 @@ function generateTsx(srcPath:string ,strictMode: boolean):string {
   const shimmedCode = '/// <reference types="svelte2tsx/svelte-shims" />\n'
   + '/// <reference types="svelte2tsx/svelte-jsx" />\n'
   + `${tsxCode}`
-  console.log(`--gentsx--${srcPath}--\n` ,shimmedCode ,'\n----')
+  // console.log(`--gentsx--${srcPath}--\n` ,shimmedCode ,'\n----')
 
   return shimmedCode
 }
@@ -142,8 +142,20 @@ const fixTsx: (program: ts.Program) => ts.TransformerFactory<ts.SourceFile | ts.
             return ts.visitEachChild(heritageType ,(someNode) => {
               // console.log('got---\n' ,someNode)
               if (!ts.isIdentifier(someNode)) return someNode
-              console.log(checker.typeToString(componentType))
-              return ctx.factory.createIdentifier(checker.typeToString(componentType))
+              // console.log(checker.typeToString(componentType))
+              // return ctx.factory.createIdentifier(checker.typeToString(componentType))
+              // checker.stri
+              const newType = 'Svelte2TsxComponent<ReturnType<typeof render>[\'props\'],ReturnType<typeof render>[\'events\'], ReturnType<typeof render>[\'slots\'] >'
+              const newIdent = ctx.factory.createIdentifier(newType)
+              // return newIdent
+              const oldCode: string = sourceFile.getText()
+              const newCode = oldCode.slice(0 ,heritageType.pos + 1)
+            + newType
+            + oldCode.slice(heritageType.end)
+              // ts.createScanner(languageVersion, skipTrivia)
+              const a = ts.transpile(newCode ,ctx.getCompilerOptions() ,sourceFile.getSourceFile().fileName)
+              program.emit()
+              return someNode
             }
             ,ctx)
           } ,ctx)
@@ -153,18 +165,43 @@ const fixTsx: (program: ts.Program) => ts.TransformerFactory<ts.SourceFile | ts.
   }
 }
 
+function oldFixTsx(sourceFile: ts.SourceFile ,checker: ts.TypeChecker) {
+  return ts.forEachChild(sourceFile ,(node) => {
+    if (!(ts.isClassDeclaration(node)
+      && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.ExportKeyword) === true
+      && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.DefaultKeyword) === true
+    )) return undefined
+
+    const someType = node.heritageClauses?.[0].types[0]
+    if (!(
+      someType !== undefined
+          && someType.kind === ts.SyntaxKind.ExpressionWithTypeArguments
+    )) return undefined
+
+    const componentType = checker.getTypeAtLocation(someType)
+    const typeString = checker.typeToString(componentType)
+    const oldCode: string = sourceFile.text
+    const newCode = oldCode.slice(0 ,someType.pos + 1)
+          + typeString
+          + oldCode.slice(someType.end)
+    return newCode
+  })
+}
+
 export type RequiredCompilerOptions = ts.CompilerOptions // & {strict: Exclude<ts.CompilerOptions['strict'] ,undefined>}
 interface CreateHostParameters {
   compilerOptions: RequiredCompilerOptions
   writeFile: ts.WriteFileCallback
   svelteExtensions: string[]
+  virtuals?: Map<string ,boolean|string>
 }
 function createHost({
   compilerOptions: options
   ,writeFile
   ,svelteExtensions
-}: CreateHostParameters): ts.CompilerHost {
-  const host = ts.createCompilerHost(options)
+  ,virtuals: passedVirtuals
+}: CreateHostParameters): ts.CompilerHost & {ourVirtuals: Map<string ,boolean|string>} {
+  const host = ts.createCompilerHost(options) as ts.CompilerHost & {ourVirtuals: Map<string ,boolean|string>}
 
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const originalReadFile = host.readFile
@@ -172,8 +209,8 @@ function createHost({
   const originalFileExists = host.fileExists
 
   // Virtual paths we created.
-  const virtuals = new Map<string ,boolean>()
-
+  const virtuals = passedVirtuals ?? new Map<string ,boolean|string>()
+  host.ourVirtuals = virtuals
   host.writeFile = (origFilePath ,contents) => {
     const filePath = path.resolve(origFilePath)
     // FIXME
@@ -193,45 +230,50 @@ function createHost({
       }
       virtuals.set(filePath ,false)
     }
-
+    else if (isKnownVirtual !== false) {
+      return true
+    }
     // Not a svelte.ts file. We do not care about you!
     return originalFileExists.call(host ,filePath)
   }
   // eslint-disable-next-line arrow-body-style
   host.readFile = (origFilePath) => {
     const filePath = path.resolve(origFilePath)
+    const virtual = virtuals.get(filePath)
 
-    if (virtuals.get(filePath) ?? false) {
+    if (virtual === true) {
       const svelteFilePath = getSveltePathFromVirtual(filePath)
-      return generateTsx(svelteFilePath ,options.strict ?? false)
+      const tsx = generateTsx(svelteFilePath ,options.strict ?? false)
+      virtuals.set(filePath ,tsx)
+      // const program = ts.createProgram([filePath] ,options ,host)
+
+      // const checker = program.getTypeChecker()
+      // const sourceFiles = program.getSourceFiles()
+      // for (const sourceFile of sourceFiles) {
+      //   // console.log(sourceFile.text)
+      //   /* eslint-disable no-continue */
+      //   /* eslint-disable @typescript-eslint/no-loop-func */
+      //   const sourcePath = path.resolve(sourceFile.fileName)
+      //   if (sourcePath !== filePath) continue
+
+      //   const newCode = oldFixTsx(sourceFile ,checker)
+      //   if (newCode !== undefined) {
+      //     virtuals.set(filePath ,newCode)
+      //     return newCode
+      //   }
+      // }
+      return tsx
     }
+    if (typeof virtual === 'string') {
+      return virtual
+    }
+
+    // console.log('Reading non Virt' ,filePath)
 
     return originalReadFile.call(host ,filePath)
   }
 
   return host
-}
-
-const oldOne: (program: ts.Program) => ts.TransformerFactory<ts.SourceFile | ts.Bundle> = (program) => (ctx) => (sourceFile) => {
-  const checker = program.getTypeChecker()
-  ts.forEachChild(sourceFile ,(node) => {
-    if (ts.isClassDeclaration(node)
-    && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.ExportKeyword) === true
-    && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.DefaultKeyword) === true
-    ) {
-      const someType = node.heritageClauses?.[0].types[0]
-      if (
-        someType !== undefined
-        && someType.kind === ts.SyntaxKind.ExpressionWithTypeArguments
-      ) {
-        const componentType = checker.getTypeAtLocation(someType)
-        const typeString = checker.typeToString(componentType)
-
-        console.log(typeString)
-      }
-    }
-  })
-  return sourceFile
 }
 
 interface CompileTsDeclarationsParams {
@@ -252,33 +294,24 @@ export function compileTsDeclarations({
     ,svelteExtensions
     ,writeFile
   })
+  // FIXME: Figure out how to do this properly,
+  // such as via afterDeclaration transforms.
+  // or maybe fixing svelte2tsx so it outputs tsx that typescript is better at resolving
   // Fix svelte tsx output to something typescript likes better
-  const program = ts.createProgram(targetFiles ,compilerOptions
+  const programFix = ts.createProgram(targetFiles ,compilerOptions
     ,host)
-  const checker = program.getTypeChecker()
-  for (const sourceFile of program.getSourceFiles()) {
-    ts.forEachChild(sourceFile ,(node) => {
-      if (ts.isClassDeclaration(node)
-    && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.ExportKeyword) === true
-    && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.DefaultKeyword) === true
-      ) {
-        const someType = node.heritageClauses?.[0].types[0]
-        if (
-          someType !== undefined
-        && someType.kind === ts.SyntaxKind.ExpressionWithTypeArguments
-        ) {
-          const componentType = checker.getTypeAtLocation(someType)
-          const typeString = checker.typeToString(componentType)
-
-          console.log(typeString)
-        }
-      }
-    })
+  const checker = programFix.getTypeChecker()
+  const sourceFiles = programFix.getSourceFiles()
+  for (const sourceFile of sourceFiles) {
+    /* eslint-disable no-continue */
+    const sourcePath = path.resolve(sourceFile.fileName)
+    if (!isVirtual(sourcePath ,svelteExtensions)) continue
+    const newCode = oldFixTsx(sourceFile ,checker)
+    if (newCode !== undefined) host.ourVirtuals.set(sourcePath ,newCode)
   }
 
-  program.emit(undefined ,undefined ,undefined ,undefined ,{
-    // before: [oldOne(program) as ts.TransformerFactory<ts.SourceFile>]
-    // after: [fixTsx(program)],
-    // afterDeclarations: [fixTsx(program)]
-  })
+  const program = ts.createProgram(targetFiles ,compilerOptions
+    ,host)
+
+  program.emit()
 }
