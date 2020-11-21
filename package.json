@@ -1,7 +1,7 @@
 {
   "name": "svelte2dts",
   "description": "Generate d.ts files from svelte files",
-  "version": "0.2.11",
+  "version": "0.2.12",
   "author": "firefish5000 @firefish5000",
   "bin": {
     "svelte2dts": "./bin/svelte2dts"
@@ -58,7 +58,7 @@
     }
   },
   "engines": {
-    "node": ">=10.1.0"
+    "node": ">=8.0.0"
   },
   "files": [
     "bin/**/*",
@@ -94,6 +94,5 @@
     "test": "run-s test:ci lint",
     "test:ci": "cross-env NODE_ENV=test jest",
     "version": "oclif-dev readme && git add README.md"
-  },
-  "types": "out/index.d.ts"
+  }
 }

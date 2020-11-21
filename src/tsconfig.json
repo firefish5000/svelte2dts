@@ -4,6 +4,8 @@
     "types": ["node"],
     "outDir": "../out",
     "declaration": true,
+    // No public api for now
+    "declarationDir": "../_build_/src",
     "rootDir": ".",
     "baseUrl": ".",
     "composite": true,
