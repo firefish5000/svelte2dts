@@ -17,7 +17,7 @@ const packProgram = (): string => {
     cwd: packagesDir
     ,encoding: 'utf8'
   })
-  if (res.status != null && res.status !== 0) {
+  if (res.error !== undefined || (res.status != null && res.status !== 0)) {
     throw res.error ?? new Error(`npm pack exited with status code ${res.status}.\n${res.stderr}`)
   }
   const out = res.stdout.trim().split(/\s/)
