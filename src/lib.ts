@@ -188,11 +188,9 @@ function createHost({
   // Virtual paths we created.
   const virtuals = passedVirtuals ?? new Map<string ,boolean|string>()
   host.ourVirtuals = virtuals
-  host.writeFile = (origFilePath ,contents) => {
+  host.writeFile = (origFilePath ,contents ,writeByteOrder) => {
     const filePath = path.resolve(origFilePath)
-    // FIXME
-    // @ts-expect-error idk
-    writeFile(filePath ,contents)
+    writeFile(filePath ,contents ,writeByteOrder)
   }
 
   host.fileExists = (origFilePath) => {
@@ -210,7 +208,7 @@ function createHost({
     else if (isKnownVirtual !== false) {
       return true
     }
-    // Not a svelte.ts file. We do not care about you!
+    // Not a svelte.tsx file. We do not care about you!
     return originalFileExists.call(host ,filePath)
   }
   // eslint-disable-next-line arrow-body-style
@@ -222,30 +220,11 @@ function createHost({
       const svelteFilePath = getSveltePathFromVirtual(filePath)
       const tsx = generateTsx(svelteFilePath ,compilerOptions.strict ?? false)
       virtuals.set(filePath ,tsx)
-      // const program = ts.createProgram([filePath] ,options ,host)
-
-      // const checker = program.getTypeChecker()
-      // const sourceFiles = program.getSourceFiles()
-      // for (const sourceFile of sourceFiles) {
-      //   // console.log(sourceFile.text)
-      //   /* eslint-disable no-continue */
-      //   /* eslint-disable @typescript-eslint/no-loop-func */
-      //   const sourcePath = path.resolve(sourceFile.fileName)
-      //   if (sourcePath !== filePath) continue
-
-      //   const newCode = oldFixTsx(sourceFile ,checker)
-      //   if (newCode !== undefined) {
-      //     virtuals.set(filePath ,newCode)
-      //     return newCode
-      //   }
-      // }
       return tsx
     }
     if (typeof virtual === 'string') {
       return virtual
     }
-
-    // console.log('Reading non Virt' ,filePath)
 
     return originalReadFile.call(host ,filePath)
   }
