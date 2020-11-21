@@ -10,7 +10,7 @@ import fs from 'fs'
 const rootPath = path.resolve(process.cwd())
 const packagesDir = path.join(rootPath ,'test' ,'packages')
 const isWindows = process.platform === 'win32'
-const binPath = path.normalize(`./node_modules/.bin/svelte2dts${isWindows ? '.ps1' : ''}`)
+const binPath = path.normalize(`./node_modules/.bin/svelte2dts${isWindows ? '.cmd' : ''}`)
 
 // pack and install
 const packProgram = (): string => {
