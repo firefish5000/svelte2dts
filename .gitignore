@@ -9,3 +9,5 @@ node_modules
 /_build_
 /test/fixtures/**/preprocessed
 /test/fixtures/**/types
+/test/packages
+/coverage

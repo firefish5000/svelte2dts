@@ -7,7 +7,5 @@ export default class B extends Svelte2TsxComponent<{
   publicAge: number
   readonly publicHungerLevel: readonly number
   internalAwake:boolean
-}, {
-  [evt: string]: CustomEvent<any>;
-}, {}> {
+}, {}, {}> {
 }
