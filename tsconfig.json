@@ -18,9 +18,7 @@
     "composite": true,
     //"baseUrl": "src",
   },
-  "references": [
-    {"path": "./src" },
-  ],
-  "include": [""],
+  // Used by eslint
+  "include": ["./*.js","./.*.js"],
   "exclude": ["src","test"]
 }
