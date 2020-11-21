@@ -37,7 +37,8 @@ function areFlagsSet(item: ExtType ,flags: ExtType): boolean {
   return (item & flags) === flags
 }
 
-function getSvelteExtensionFromVirtual(filePath:string ,svelteExtensions:string[]) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function getSvelteExtensionFromVirtual(filePath:string ,svelteExtensions:string[]): string | undefined {
   return svelteExtensions.find((ext) => filePath.endsWith(`${ext}.tsx`))
 }
 function getSveltePathFromVirtual(filePath:string) {
@@ -95,40 +96,25 @@ function generateTsx(srcPath:string ,strictMode: boolean):string {
   const shimmedCode = '/// <reference types="svelte2tsx/svelte-shims" />\n'
   + '/// <reference types="svelte2tsx/svelte-jsx" />\n'
   + `${tsxCode}`
-  // console.log(`--gentsx--${srcPath}--\n` ,shimmedCode ,'\n----')
 
   return shimmedCode
 }
 
+// FIXME: I cannot for the life of me get this to resolve to the type I want
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const fixTsx: (program: ts.Program) => ts.TransformerFactory<ts.SourceFile | ts.Bundle> = (program) => {
-  /* eslint-disable @typescript-eslint/prefer-ts-expect-error */
-  const checker = program.getTypeChecker()
+  // const checker = program.getTypeChecker()
   const dbging = false
   return (ctx) => (sourceFile) => {
     if (dbging) console.log(sourceFile.getSourceFile().fileName)
     return ts.visitNode(sourceFile ,(sourceNode) => {
       if (dbging) console.log(sourceNode)
       return ts.visitEachChild(sourceNode ,(node) => {
-        // console.log('HERE----\n' ,node)
-
         // Only look at default export class declarations
         if (!(ts.isClassDeclaration(node)
           && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.ExportKeyword) === true
           && node.modifiers?.some((e) => e.kind === ts.SyntaxKind.DefaultKeyword) === true
         )) return node
-
-        // with the heritage clause
-        const heritageClause = node.heritageClauses?.[0]
-        if (heritageClause === undefined) return node
-        const heritageType = heritageClause.types[0]
-        if (!ts.isExpressionWithTypeArguments(heritageType)) return node
-
-        // Extract the svelte2tsx type
-        const componentType = checker.getTypeAtLocation(heritageType)
-        // console.log(componentType)
-
-        const newTypeNode = checker.typeToTypeNode(componentType ,undefined ,undefined)
-        if (newTypeNode === undefined) throw new Error(`Failed to generate typing for ${relPathJson(sourceFile.getSourceFile().fileName)} node ${JSON.stringify(heritageClause)}`)
 
         // FIXME: Figure out the typescript wizardry necessary to fix the class....
         // const newHeritage = ctx.factory.updateHeritageClause(node.heritageClauses![0], )
@@ -138,23 +124,14 @@ const fixTsx: (program: ts.Program) => ts.TransformerFactory<ts.SourceFile | ts.
           if (!ts.isHeritageClause(heritageClause)) return heritageClause
           return ts.visitEachChild(heritageClause ,(heritageType) => {
             if (!ts.isExpressionWithTypeArguments(heritageType)) return heritageType
-            // console.log('got---\n' ,heritageType)
+            // Extract the svelte2tsx type
+            // const componentType = checker.getTypeAtLocation(heritageType)
+            // console.log(componentType)
+
             return ts.visitEachChild(heritageType ,(someNode) => {
               // console.log('got---\n' ,someNode)
               if (!ts.isIdentifier(someNode)) return someNode
-              // console.log(checker.typeToString(componentType))
-              // return ctx.factory.createIdentifier(checker.typeToString(componentType))
-              // checker.stri
-              const newType = 'Svelte2TsxComponent<ReturnType<typeof render>[\'props\'],ReturnType<typeof render>[\'events\'], ReturnType<typeof render>[\'slots\'] >'
-              const newIdent = ctx.factory.createIdentifier(newType)
-              // return newIdent
-              const oldCode: string = sourceFile.getText()
-              const newCode = oldCode.slice(0 ,heritageType.pos + 1)
-            + newType
-            + oldCode.slice(heritageType.end)
-              // ts.createScanner(languageVersion, skipTrivia)
-              const a = ts.transpile(newCode ,ctx.getCompilerOptions() ,sourceFile.getSourceFile().fileName)
-              program.emit()
+              // TODO: Return a fixed node
               return someNode
             }
             ,ctx)
@@ -196,12 +173,12 @@ interface CreateHostParameters {
   virtuals?: Map<string ,boolean|string>
 }
 function createHost({
-  compilerOptions: options
+  compilerOptions
   ,writeFile
   ,svelteExtensions
   ,virtuals: passedVirtuals
 }: CreateHostParameters): ts.CompilerHost & {ourVirtuals: Map<string ,boolean|string>} {
-  const host = ts.createCompilerHost(options) as ts.CompilerHost & {ourVirtuals: Map<string ,boolean|string>}
+  const host = ts.createCompilerHost(compilerOptions) as ts.CompilerHost & {ourVirtuals: Map<string ,boolean|string>}
 
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const originalReadFile = host.readFile
@@ -243,7 +220,7 @@ function createHost({
 
     if (virtual === true) {
       const svelteFilePath = getSveltePathFromVirtual(filePath)
-      const tsx = generateTsx(svelteFilePath ,options.strict ?? false)
+      const tsx = generateTsx(svelteFilePath ,compilerOptions.strict ?? false)
       virtuals.set(filePath ,tsx)
       // const program = ts.createProgram([filePath] ,options ,host)
 
@@ -300,6 +277,7 @@ export function compileTsDeclarations({
   // Fix svelte tsx output to something typescript likes better
   const programFix = ts.createProgram(targetFiles ,compilerOptions
     ,host)
+
   const checker = programFix.getTypeChecker()
   const sourceFiles = programFix.getSourceFiles()
   for (const sourceFile of sourceFiles) {

@@ -12,13 +12,20 @@ export const tsConfigFilePath = ts.findConfigFile(process.cwd() ,ts.sys.fileExis
 export const tsConfigDir = path.resolve(path.dirname(tsConfigFilePath ?? './'))
 export const tsCompilerConfig: ts.CompilerOptions = ts.getDefaultCompilerOptions()
 
+interface ReadConfigFileResult {
+  config?: {compilerOptions?: ts.CompilerOptions}
+  error?: ReturnType<typeof ts.readConfigFile>['error']
+}
+export function readTsconfigFile(configPath: string) {
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  const res = ts.readConfigFile(configPath ,ts.sys.readFile) as ReadConfigFileResult
+  return res
+}
+
 if (tsConfigFilePath !== undefined) {
   // Read and apply tsconfig.json
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  const tsConfigReadResults = ts.readConfigFile(tsConfigFilePath ,ts.sys.readFile) as {
-    config?: {compilerOptions?: ts.CompilerOptions}
-    error?: ReturnType<typeof ts.readConfigFile>['error']
-  }
+  const tsConfigReadResults = readTsconfigFile(tsConfigFilePath)
   if (tsConfigReadResults.error !== undefined) {
     if (!tsConfigReadResults.error.reportsUnnecessary as any as boolean) {
       throw new Error(tsConfigReadResults.error.messageText.toString())
