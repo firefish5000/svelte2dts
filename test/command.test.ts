@@ -10,7 +10,9 @@ import fs from 'fs'
 const rootPath = path.resolve(process.cwd())
 const packagesDir = path.join(rootPath ,'test' ,'packages')
 const isWindows = process.platform === 'win32'
-const binPath = path.normalize(`./node_modules/.bin/svelte2dts${isWindows ? '.cmd' : ''}`)
+const binPath = path.normalize(
+  `./node_modules/.bin/svelte2dts${isWindows ? '.cmd' : ''}`
+)
 
 // pack and install
 const packProgram = (): string => {
@@ -25,7 +27,9 @@ const packProgram = (): string => {
   }
 
   if (res.status != null && res.status !== 0) {
-    throw new Error(`npm pack exited with status code ${res.status}.\n${res.stderr}`)
+    throw new Error(
+      `npm pack exited with status code ${res.status}.\n${res.stderr}`
+    )
   }
   const out = res.stdout.trim().split(/\s/)
   const fileName = out[out.length - 1].trim()
@@ -45,7 +49,6 @@ const installPackage = (project: string ,packedPackage: string) => spawnSync('np
   cwd: project
   ,shell: true
 })
-
 cleanupFiles(['./test/packages'])
 const packedPackage = packProgram()
 describe('command' ,() => {
@@ -54,11 +57,10 @@ describe('command' ,() => {
       rootPath
       ,'./test/fixtures/simple-project'
     )
-    const typeDir1 = path.join(simpleProjectPath ,'./types')
-    const typeDir2 = path.join(simpleProjectPath ,'./preprocessed')
+    const typeDir1 = path.join(simpleProjectPath ,'types')
+    const typeDir2 = path.join(simpleProjectPath ,'preprocessed')
     const typeDirs = [typeDir1 ,typeDir2]
     setupProject(simpleProjectPath)
-
     it('installs ok' ,() => {
       const run = installPackage(simpleProjectPath ,packedPackage)
       expect(run.status).toEqual(0)
@@ -74,7 +76,7 @@ describe('command' ,() => {
         expect(run.status).toEqual(0)
       })
       it('generates valid svelte.d.ts files' ,() => {
-        const a = fs.readFileSync(path.join(typeDir1 ,'./A.svelte.d.ts') ,{
+        const a = fs.readFileSync(path.join(typeDir1 ,'A.svelte.d.ts') ,{
           encoding: 'utf8'
         })
         expect(a).toMatchInlineSnapshot(`
@@ -94,14 +96,13 @@ describe('command' ,() => {
         `)
       })
       it('does not copy svelte.d.ts files' ,() => {
-        expect(fs.existsSync(path.join(typeDir1 ,'./B.svelte.d.ts'))).toBe(
-          false
-        )
+        expect(fs.existsSync(path.join(typeDir1 ,'B.svelte.d.ts'))).toBe(false)
       })
       it('does not copy or create svelte.d.ts files when both a svelte and svelte.d.ts file exist' ,() => {
-        expect(fs.existsSync(path.join(typeDir1 ,'./C.svelte.d.ts'))).toBe(
-          false
-        )
+        expect(fs.existsSync(path.join(typeDir1 ,'C.svelte.d.ts'))).toBe(false)
+      })
+      it('does not generate d.ts files for normal typescript files' ,() => {
+        expect(fs.existsSync(path.join(typeDir1 ,'index.d.ts'))).toBe(false)
       })
     })
     const args2 = ['--declarationDir' ,typeDir2 ,'./src']
@@ -116,7 +117,7 @@ describe('command' ,() => {
         expect(run.status).toEqual(0)
       })
       it('generates valid svelte.d.ts files' ,() => {
-        const a = fs.readFileSync(path.join(typeDir2 ,'./A.svelte.d.ts') ,{
+        const a = fs.readFileSync(path.join(typeDir2 ,'A.svelte.d.ts') ,{
           encoding: 'utf8'
         })
         expect(a).toMatchInlineSnapshot(`
@@ -136,9 +137,8 @@ describe('command' ,() => {
         `)
       })
     })
-    const args3 = ['--no-strict' ,'./src']
     describe('with --no-strict' ,() => {
-      const args = args3
+      const args = ['--no-strict' ,'./src']
       beforeAll(() => cleanupFiles(typeDirs))
       it('runs ok' ,() => {
         const run = spawnSync(binPath ,args ,{
@@ -148,7 +148,7 @@ describe('command' ,() => {
         expect(run.status).toEqual(0)
       })
       it('generates valid svelte.d.ts files' ,() => {
-        const a = fs.readFileSync(path.join(typeDir1 ,'./A.svelte.d.ts') ,{
+        const a = fs.readFileSync(path.join(typeDir1 ,'A.svelte.d.ts') ,{
           encoding: 'utf8'
         })
         expect(a).toMatchInlineSnapshot(`
@@ -166,6 +166,54 @@ describe('command' ,() => {
           }
           "
         `)
+      })
+    })
+    describe('with --runOnTs' ,() => {
+      const args = ['--runOnTs' ,'./src']
+      beforeAll(() => cleanupFiles(typeDirs))
+      it('runs ok' ,() => {
+        const run = spawnSync(binPath ,args ,{
+          cwd: simpleProjectPath
+          ,shell: true
+        })
+        expect(run.status).toEqual(0)
+      })
+      it('generates d.ts files for normal typescript files' ,() => {
+        expect(fs.existsSync(path.join(typeDir1 ,'index.d.ts'))).toBe(true)
+      })
+    })
+    describe('with --dryRun' ,() => {
+      const args = ['--dryRun' ,'./src']
+      beforeAll(() => cleanupFiles(typeDirs))
+      it('reports files that would be created' ,() => {
+        const run = spawnSync(binPath ,args ,{
+          cwd: simpleProjectPath
+          ,shell: true
+          ,encoding: 'utf8'
+        })
+        if (isWindows) {
+          expect(run.stdout).toMatchInlineSnapshot(`
+          "Dry run enabled, will not change anything!
+          Using tsconfig \\"tsconfig.json\\"
+          Generating declarations for svelte files [\\"src\\"] -> \\"types\\". (dry run)
+          Writing \\"types\\\\\\\\A.svelte.d.ts\\" (dry run)
+          Skipping \\"types\\\\\\\\index.d.ts\\"
+          "
+        `)
+        }
+        else {
+          expect(run.stdout).toMatchInlineSnapshot(`
+            "Dry run enabled, will not change anything!
+            Using tsconfig \\"tsconfig.json\\"
+            Generating declarations for svelte files [\\"src\\"] -> \\"types\\". (dry run)
+            Writing \\"types/A.svelte.d.ts\\" (dry run)
+            Skipping \\"types/index.d.ts\\"
+            "
+          `)
+        }
+      })
+      it('does not generate any files' ,() => {
+        expect(fs.existsSync(path.join(typeDir1))).toBe(false)
       })
     })
   })

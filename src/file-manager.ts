@@ -63,16 +63,23 @@ export async function preprocessSvelte({
       console.error(`Failed to generate d.ts file ${relPathJson(dest)}`)
     }
     if (
-      (fs.existsSync(dest) || createdFiles.has(dest))
+      (fs.existsSync(dest))
        && !overwrite
     ) throw new Error(`Typing file ${relPathJson(dest)} already exists! (consider enabling '--overwrite')`)
-    createdFiles.add(dest)
+    // TODO: Check if this is even possible
+    if (createdFiles.has(dest)) {
+      throw new Error(`Typing file ${relPathJson(dest)} was created twice!`
+    + ' If you use composite tyupescript projects, check if multiple projects have files with the'
+    + ' same path being written to the same declarationDirectory')
+    }
 
     if (!runOnTs
         && !svelteExtensions.some((ext) => dest.endsWith(`${ext}.d.ts`))
     ) {
       console.log(`Skipping ${relPathJson(dest)}`)
+      return
     }
+    createdFiles.add(dest)
     console.log(`Writing ${relPathJson(dest)}${dryRun ? ' (dry run)' : ''}`)
 
     if (!dryRun) {
