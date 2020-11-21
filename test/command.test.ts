@@ -9,6 +9,8 @@ import fs from 'fs'
 
 const rootPath = path.resolve(process.cwd())
 const packagesDir = path.join(rootPath ,'test' ,'packages')
+const isWindows = process.platform === 'win32'
+const binPath = path.normalize(`./node_modules/.bin/svelte2dts${isWindows ? '.ps1' : ''}`)
 
 // pack and install
 const packProgram = (): string => {
@@ -29,7 +31,6 @@ const packProgram = (): string => {
   const fileName = out[out.length - 1].trim()
   return path.join(packagesDir ,fileName)
 }
-const binPath = './node_modules/.bin/svelte2dts'
 const cleanupFiles = (files: string[]): void => {
   spawnSync('git' ,['clean' ,'-fX' ,...files] ,{
     cwd: rootPath
@@ -42,6 +43,7 @@ const setupProject = (project: string): void => {
 }
 const installPackage = (project: string ,packedPackage: string) => spawnSync('npm' ,['i' ,'--no-save' ,packedPackage] ,{
   cwd: project
+  ,shell: true
 })
 
 cleanupFiles(['./test/packages'])
@@ -65,7 +67,7 @@ describe('command' ,() => {
       const args = ['./src']
       beforeAll(() => cleanupFiles(typeDirs))
       it('runs ok' ,() => {
-        const run = spawnSync('node' ,[binPath ,...args] ,{
+        const run = spawnSync(binPath ,args ,{
           cwd: simpleProjectPath
           ,shell: true
         })
@@ -107,7 +109,7 @@ describe('command' ,() => {
       const args = args2
       beforeAll(() => cleanupFiles(typeDirs))
       it('runs ok' ,() => {
-        const run = spawnSync('node' ,[binPath ,...args] ,{
+        const run = spawnSync(binPath ,args ,{
           cwd: simpleProjectPath
           ,shell: true
         })
@@ -139,7 +141,7 @@ describe('command' ,() => {
       const args = args3
       beforeAll(() => cleanupFiles(typeDirs))
       it('runs ok' ,() => {
-        const run = spawnSync('node' ,[binPath ,...args] ,{
+        const run = spawnSync(binPath ,args ,{
           cwd: simpleProjectPath
           ,shell: true
         })
