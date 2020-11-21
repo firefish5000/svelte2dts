@@ -16,9 +16,14 @@ const packProgram = (): string => {
   const res = spawnSync('npm' ,['pack' ,rootPath] ,{
     cwd: packagesDir
     ,encoding: 'utf8'
+    ,shell: true
   })
-  if (res.error !== undefined || (res.status != null && res.status !== 0)) {
-    throw res.error ?? new Error(`npm pack exited with status code ${res.status}.\n${res.stderr}`)
+  if (res.error !== undefined) {
+    throw res.error
+  }
+
+  if (res.status != null && res.status !== 0) {
+    throw new Error(`npm pack exited with status code ${res.status}.\n${res.stderr}`)
   }
   const out = res.stdout.trim().split(/\s/)
   const fileName = out[out.length - 1].trim()
@@ -62,6 +67,7 @@ describe('command' ,() => {
       it('runs ok' ,() => {
         const run = spawnSync('node' ,[binPath ,...args] ,{
           cwd: simpleProjectPath
+          ,shell: true
         })
         expect(run.status).toEqual(0)
       })
@@ -103,6 +109,7 @@ describe('command' ,() => {
       it('runs ok' ,() => {
         const run = spawnSync('node' ,[binPath ,...args] ,{
           cwd: simpleProjectPath
+          ,shell: true
         })
         expect(run.status).toEqual(0)
       })
@@ -134,6 +141,7 @@ describe('command' ,() => {
       it('runs ok' ,() => {
         const run = spawnSync('node' ,[binPath ,...args] ,{
           cwd: simpleProjectPath
+          ,shell: true
         })
         expect(run.status).toEqual(0)
       })
