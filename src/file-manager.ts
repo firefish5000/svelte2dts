@@ -1,8 +1,9 @@
 import fs from 'fs'
 import path from 'path'
 
+import ts from 'typescript'
 import { isSubpathOf ,relPathJson } from './utils'
-import { generateComponentDeclarations } from './lib'
+import { compileTsDeclarations ,RequiredCompilerOptions } from './lib'
 
 async function* walk(dir: string): AsyncGenerator<string> {
   if (!fs.existsSync(dir)) {
@@ -23,7 +24,7 @@ interface PreprocessSvelteOptions {
   runOnJs: boolean
   srcDirs: string[]
   outDir: string
-  strict: boolean
+  compilerOptions: RequiredCompilerOptions
   svelteExtensions: string[]
 }
 
@@ -31,11 +32,10 @@ interface PreprocessSvelteOptions {
 export async function preprocessSvelte({
   dryRun = false
   ,overwrite = false
-  ,autoGenerate = false
   ,outDir: outDirArg
   ,srcDirs: srcDirArgs
   ,svelteExtensions = ['.svelte']
-  ,strict = false
+  ,compilerOptions
   ,runOnTs = false
   ,runOnJs = false
 }: PreprocessSvelteOptions): Promise<void> {
@@ -55,43 +55,44 @@ export async function preprocessSvelte({
       }
     }
   }
-  const { extraFiles } = generateComponentDeclarations(
-    targetPaths
-    ,svelteExtensions
-    ,outDir
-    ,strict
-    ,(componentPath) => {
-      if (!autoGenerate) return false
-      return isTargetPath(componentPath)
-    }
-  )
-
-  const createdFiles = new Map<string ,string>()
-  for (const { virtualSourcePath: dest ,code: dtsCode } of extraFiles.values()) {
+  const createdFiles = new Set<string>()
+  const writer: ts.WriteFileCallback = (dest ,dtsCode ,writeByteOrderMark) => {
     if (!isSubpathOf(dest ,outDir)) throw new Error(`Attempt to create typing file outside of declarationDir! ${relPathJson(dest)}`)
 
     if (dtsCode === undefined) {
       console.error(`Failed to generate d.ts file ${relPathJson(dest)}`)
     }
     if (
-      (fs.existsSync(dest) || createdFiles.has(dest))
+      (fs.existsSync(dest))
        && !overwrite
     ) throw new Error(`Typing file ${relPathJson(dest)} already exists! (consider enabling '--overwrite')`)
-    createdFiles.set(dest ,'')
-  }
+    // TODO: Check if this is even possible
+    if (createdFiles.has(dest)) {
+      throw new Error(`Typing file ${relPathJson(dest)} was created twice!`
+    + ' If you use composite tyupescript projects, check if multiple projects have files with the'
+    + ' same path being written to the same declarationDirectory')
+    }
 
-  // Write the d.ts files that we are interested in
-  for (const { virtualSourcePath: dest ,code: dtsCode } of extraFiles.values()) {
-    /* eslint-disable no-continue */
-    if (dtsCode === undefined) continue
     if (!runOnTs
-      && !svelteExtensions.some((ext) => dest.endsWith(`${ext}.d.ts`))
-    ) continue
+        && !svelteExtensions.some((ext) => dest.endsWith(`${ext}.d.ts`))
+    ) {
+      console.log(`Skipping ${relPathJson(dest)}`)
+      return
+    }
+    createdFiles.add(dest)
     console.log(`Writing ${relPathJson(dest)}${dryRun ? ' (dry run)' : ''}`)
 
     if (!dryRun) {
-      fs.mkdirSync(path.dirname(dest) ,{ recursive: true })
-      fs.writeFileSync(dest ,dtsCode)
+      ts.sys.writeFile(dest ,dtsCode ,writeByteOrderMark)
+      // fs.mkdirSync(path.dirname(dest) ,{ recursive: true })
+      // fs.writeFileSync(dest ,dtsCode)
     }
   }
+
+  compileTsDeclarations({
+    targetFiles: targetPaths
+    ,svelteExtensions
+    ,compilerOptions
+    ,writeFile: writer
+  })
 }

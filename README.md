@@ -7,7 +7,12 @@ Generate d.ts files from svelte files, creating truly sharable and well typed co
 [![Version](https://img.shields.io/npm/v/svelte2dts?style=for-the-badge&logo=npm&label=npm)](https://npmjs.org/package/svelte2dts)
 [![Downloads/week](https://img.shields.io/npm/dw/svelte2dts?style=for-the-badge)](https://npmjs.org/package/svelte2dts)
 [![License](https://img.shields.io/npm/l/svelte2dts?style=for-the-badge)](https://github.com/firefish5000/svelte2dts/blob/master/package.json)
-[![GitHub Workflow](https://img.shields.io/github/workflow/status/firefish5000/svelte2dts/CI?style=for-the-badge&logo=github&label=Workflows&logoColor=red)](https://github.com/firefish5000/svelte2dts)
+[![GitHub Workflow](https://img.shields.io/github/workflow/status/firefish5000/svelte2dts/CI?style=for-the-badge&logo=github&label=CI&logoColor=red)](https://github.com/firefish5000/svelte2dts)
+## Warning!
+This package is still under heavy development.
+As far as I am aware, it works as intended.
+API can be considered as non-existent.
+Only the command has any level of support for now.
 
 ## Installation
 Install svelte2dts and its peer deps
@@ -18,7 +23,7 @@ npm i -D svelte2dts svelte2tsx typescript
 After installing, you can invoke the command via npx or package.json.
 
 ### Via CLI
-Read all svelte files from `./src` and generate .d.ts files in `./types`
+Read all svelte files from `./src` and generate d.ts files in `./types`
 ```sh
 npx svelte2dts --overwrite --runOnTS --declarationDir ./types ./src
 ```
@@ -72,6 +77,28 @@ have to:
 1) run the markup preprocessors
 2) run us on their output
 3) finish preprocessing to create your sharable component.
+
+I am considering writing a svelte preprocessor
+to intercept the code going into svelte-preprocess.typescript
+and generate the declarations from that.
+
+#### `tsc` is still required
+We only emit declarations for now.
+We *do not* compile your typescript into the configured outDir!
+As there are no real limitations stopping us from doing so
+we might add this feature in the future
+
+#### src/MyComponent.svelte.d.ts is not copied to declarationDir
+Typescript ***never*** copies d.ts files from src into declarationDir.
+We are trying not to deviate from their decisions too much.
+As such, if you want d.ts or svelte.d.ts files copied into declarationDir,
+you will need to do so with separate command.
+
+#### My component is still not sharable!
+Our only goal is to generate the sharable typings for your code.
+You will still require another package or script to generate a
+sharable component.
+A package that does both at the same time is next on my list to tackle
 
 ## Q&A
 #### My component is well typed in Vs-Code when used in `.ts` files, but not in `.svelte` files
