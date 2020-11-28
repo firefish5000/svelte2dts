@@ -11,7 +11,7 @@ interface PreprocessSvelteOptions {
   autoGenerate: boolean
   runOnTs: boolean
   runOnJs: boolean
-  srcDirs: string[]
+  includeGlobs: string[]
   outDir: string
   compilerOptions: RequiredCompilerOptions
   svelteExtensions: string[]
@@ -22,13 +22,12 @@ export function preprocessSvelte({
   dryRun = false
   ,overwrite = false
   ,outDir: outDirArg
-  ,srcDirs: srcDirArgs
+  ,includeGlobs
   ,svelteExtensions = ['.svelte']
   ,compilerOptions
   ,runOnTs = false
   ,runOnJs = false
 }: PreprocessSvelteOptions): void {
-  const srcDirs = srcDirArgs
   const outDir = outDirArg
   const targetExtensions = [
     ...svelteExtensions
@@ -36,7 +35,11 @@ export function preprocessSvelte({
     ,...(runOnJs ? ['.js' ,'.jsx'] : [])
   ]
 
-  const targetPaths = getSourceFiles(path.resolve('./') ,targetExtensions ,[] ,srcDirs)
+  // FICME tsconfig Path
+  const targetPaths = getSourceFiles(path.resolve('./')
+    ,targetExtensions
+    ,undefined
+    ,includeGlobs)
   const createdFiles = new Set<string>()
   const writer: ts.WriteFileCallback = (dest ,dtsCode ,writeByteOrderMark) => {
     if (!isSubpathOf(dest ,outDir)) throw new Error(`Attempt to create typing file outside of declarationDir! ${relPathJson(dest)}`)

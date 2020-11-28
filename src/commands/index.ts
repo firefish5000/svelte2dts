@@ -75,10 +75,11 @@ class Svelte2Dts extends Command {
 
   dryRun = false
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async run() {
     const { flags ,argv } = this.parse(Svelte2Dts)
     const { dryRun ,overwrite ,runOnTs } = flags
-    const srcDirs = argv.map((e) => path.resolve(e))
+    const srcDirs = argv
     const outDir = flags.declarationDir
 
     if (dryRun) {
@@ -90,15 +91,15 @@ class Svelte2Dts extends Command {
       this.log(`Using tsconfig ${relPathJson(tsConfigFilePath)}`)
     }
     this.log(`Generating declarations for svelte files ${
-      JSON.stringify(srcDirs.map(relativePath))
+      JSON.stringify(srcDirs)
     } -> ${
       relPathJson(outDir)
     }.${dryRun ? ' (dry run)' : ''}`)
 
     tsCompilerConfig.emitDeclarationOnly = true
 
-    await preprocessSvelte({
-      srcDirs
+    preprocessSvelte({
+      includeGlobs: srcDirs
       ,outDir
       ,runOnTs
       ,svelteExtensions: flags.extensions

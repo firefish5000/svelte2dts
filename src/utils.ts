@@ -12,31 +12,39 @@ export const basePath = process.cwd()
 // eslint-disable-next-line @typescript-eslint/unbound-method
 export const tsConfigFilePath = ts.findConfigFile(process.cwd() ,ts.sys.fileExists)
 export const tsConfigDir = path.resolve(path.dirname(tsConfigFilePath ?? './'))
-export const tsCompilerConfig: ts.CompilerOptions = ts.getDefaultCompilerOptions()
 
-interface ReadConfigFileResult {
-  config?: {compilerOptions?: ts.CompilerOptions}
-  error?: ReturnType<typeof ts.readConfigFile>['error']
-}
-export function readTsconfigFile(configPath: string) {
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  const res = ts.readConfigFile(configPath ,ts.sys.readFile) as ReadConfigFileResult
-  return res
+export function readTsconfigFile(
+  configPath: string
+  ,initialCompilerOpts: ts.CompilerOptions = ts.getDefaultCompilerOptions()
+): ts.ParsedCommandLine {
+  const parsed = ts.getParsedCommandLineOfConfigFile(configPath ,initialCompilerOpts ,{
+    ...ts.sys
+    ,onUnRecoverableConfigFileDiagnostic(diag) {
+      throw new Error(JSON.stringify(diag ,null ,2))
+    }
+  })
+  if (parsed === undefined) {
+    throw new Error(`Failed to parse tsconfig file ${relPathJson(configPath)}`)
+  }
+  return parsed
 }
 
+let tsConfigReadResults
 if (tsConfigFilePath !== undefined) {
   // Read and apply tsconfig.json
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  const tsConfigReadResults = readTsconfigFile(tsConfigFilePath)
-  if (tsConfigReadResults.error !== undefined) {
-    if (!tsConfigReadResults.error.reportsUnnecessary as any as boolean) {
-      throw new Error(tsConfigReadResults.error.messageText.toString())
+  tsConfigReadResults = readTsconfigFile(tsConfigFilePath)
+  if (tsConfigReadResults.errors !== undefined) {
+    if (tsConfigReadResults.errors.some((err) => err.reportsUnnecessary !== true)) {
+      throw new Error(tsConfigReadResults.errors
+        .filter((err) => err.reportsUnnecessary !== true)
+        .map((err) => err.messageText.toString())
+        .join('\n'))
     }
   }
-  if (typeof tsConfigReadResults.config?.compilerOptions === 'object') {
-    Object.assign(tsCompilerConfig ,tsConfigReadResults.config.compilerOptions)
-  }
 }
+export const tsCompilerConfig: ts.CompilerOptions = tsConfigReadResults?.options ?? ts.getDefaultCompilerOptions()
+export const tsParsedConfig = tsConfigReadResults
 
 export const tsConfigDeclarationDir: undefined | string = (
   tsConfigFilePath !== undefined
@@ -135,8 +143,8 @@ declare module 'typescript' {
 export function getSourceFiles(
   tsconfigDir: string
   ,extensions: string[]
-  ,exclude: string[]
-  ,include: string[]
+  ,exclude: string[] = ['node_modules']
+  ,include: string[] = ['*']
 ) {
   return ts.matchFiles(
     tsconfigDir
@@ -151,5 +159,11 @@ export function getSourceFiles(
   )
 }
 export function getSourceFilesForConfig(tsconfigDir: string ,extensions: string[]) {
-
+  const conf = readTsconfigFile(tsConfigDir)
+  getSourceFiles(
+    tsconfigDir
+    ,extensions
+    ,conf.typeAcquisition?.exclude
+    ,conf.typeAcquisition?.include
+  )
 }
