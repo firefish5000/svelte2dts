@@ -1,0 +1,20 @@
+name: Backtesting
+on: [push]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: "14.x"
+          registry-url: "https://registry.npmjs.org"
+
+      # Ensure everything is compiled
+      - run: "npm install"
+      - run: "npm build"
+ 
+      # Check if incompatible
+      - run: '[[ "$(./utils/suggestVersion.sh)" == "major" ]] && exit 0 || exit 1'

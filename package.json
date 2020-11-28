@@ -93,7 +93,6 @@
     "prepare": "run-p build",
     "test": "run-s test:ci lint",
     "test:ci": "cross-env NODE_ENV=test jest",
-    "version": "oclif-dev readme && git add README.md",
-    "suggestVersion": "git checkout \"$(git describe --tags \"$(git rev-list --tags --max-count=1)\")\" -- test jest.config.js"
+    "suggestVersion": "bash utils/suggestVersion.sh"
   }
 }
