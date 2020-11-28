@@ -9,7 +9,7 @@
     "rootDir": ".",
     "baseUrl": ".",
     "composite": true,
-    "tsBuildInfoFile": "../_build_/src.tsbuildinfo"
+    "tsBuildInfoFile": "../_build_/src.tsbuildinfo",
   },
   "include": ["./**/*.ts"],
   "exclude": []

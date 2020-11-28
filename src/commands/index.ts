@@ -19,7 +19,6 @@ class Svelte2Dts extends Command {
     version: oFlags.version({ 'char': 'v' })
     ,help: oFlags.help({ 'char': 'h' })
 
-    // flag with no value (-f, --force)
     ,overwrite: oFlags.boolean({
       'default': false
       ,'allowNo': true
@@ -75,12 +74,6 @@ class Svelte2Dts extends Command {
   static args = []
 
   dryRun = false
-
-  // NOTE: This requires us to know the rootDir.
-  // Typescript does not seem to provide a obvious method of capturing the one it chose.
-  // And supporting composite projects and rootDirs would further the complications.
-  // As such, I would rather not support copying and other nonstandard ts features.
-  // If we do add it, we should do it with some form of moduleResolution.
 
   async run() {
     const { flags ,argv } = this.parse(Svelte2Dts)

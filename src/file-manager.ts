@@ -1,20 +1,9 @@
 import fs from 'fs'
-import path from 'path'
 
 import ts from 'typescript'
-import { isSubpathOf ,relPathJson } from './utils'
+import path from 'path'
+import { getSourceFiles ,isSubpathOf ,relPathJson } from './utils'
 import { compileTsDeclarations ,RequiredCompilerOptions } from './lib'
-
-async function* walk(dir: string): AsyncGenerator<string> {
-  if (!fs.existsSync(dir)) {
-    throw new Error(`srcDir: ${JSON.stringify(dir)} does not exist!`)
-  }
-  for await (const d of await fs.promises.opendir(dir)) {
-    const entry = path.join(dir ,d.name)
-    if (d.isDirectory()) yield* walk(entry)
-    else if (d.isFile()) yield entry
-  }
-}
 
 interface PreprocessSvelteOptions {
   dryRun: boolean
@@ -29,7 +18,7 @@ interface PreprocessSvelteOptions {
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export async function preprocessSvelte({
+export function preprocessSvelte({
   dryRun = false
   ,overwrite = false
   ,outDir: outDirArg
@@ -38,8 +27,7 @@ export async function preprocessSvelte({
   ,compilerOptions
   ,runOnTs = false
   ,runOnJs = false
-}: PreprocessSvelteOptions): Promise<void> {
-  const targetPaths: string[] = []
+}: PreprocessSvelteOptions): void {
   const srcDirs = srcDirArgs
   const outDir = outDirArg
   const targetExtensions = [
@@ -47,14 +35,8 @@ export async function preprocessSvelte({
     ,...((true || runOnTs) ? ['.ts' ,'.tsx'] : [])
     ,...(runOnJs ? ['.js' ,'.jsx'] : [])
   ]
-  const isTargetPath = (filePath: string) => targetExtensions.some((ext) => filePath.endsWith(ext))
-  for await (const srcDir of srcDirs) {
-    for await (const filePath of walk(srcDir)) {
-      if (isTargetPath(filePath)) {
-        targetPaths.push(filePath)
-      }
-    }
-  }
+
+  const targetPaths = getSourceFiles(path.resolve('./') ,targetExtensions ,[] ,srcDirs)
   const createdFiles = new Set<string>()
   const writer: ts.WriteFileCallback = (dest ,dtsCode ,writeByteOrderMark) => {
     if (!isSubpathOf(dest ,outDir)) throw new Error(`Attempt to create typing file outside of declarationDir! ${relPathJson(dest)}`)
