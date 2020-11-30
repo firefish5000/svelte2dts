@@ -1,7 +1,13 @@
 #!/bin/bash
 set -e
 
-IS_CLEAN="$(git diff-index --quiet HEAD; echo $?)"
+>&2 echo "Checking working directory..." 
+# git diff-index seems to remember files that changed.
+# git status seems to clear that memory and force
+# it to re-check
+>/dev/null git status
+>&2 git diff-index HEAD --exit-code
+IS_CLEAN="$(echo $?)"
 
 if [[ $IS_CLEAN != 0 ]]; then 
   >&2 echo "Working directory is not clean. Refusing to proceed!" 
