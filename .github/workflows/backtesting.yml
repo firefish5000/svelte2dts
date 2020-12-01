@@ -1,8 +1,9 @@
+# Runs tests from previous release on new code.
 name: Backtesting
 on: [push]
 
 jobs:
-  deploy:
+  Test:
     runs-on: ubuntu-latest
 
     steps:

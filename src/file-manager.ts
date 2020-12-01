@@ -12,7 +12,6 @@ interface PreprocessSvelteOptions {
   runOnTs: boolean
   runOnJs: boolean
   includeGlobs: string[]
-  outDir: string
   compilerOptions: RequiredCompilerOptions
   svelteExtensions: string[]
 }
@@ -21,14 +20,12 @@ interface PreprocessSvelteOptions {
 export function preprocessSvelte({
   dryRun = false
   ,overwrite = false
-  ,outDir: outDirArg
   ,includeGlobs
   ,svelteExtensions = ['.svelte']
   ,compilerOptions
   ,runOnTs = false
   ,runOnJs = false
 }: PreprocessSvelteOptions): void {
-  const outDir = outDirArg
   const targetExtensions = [
     ...svelteExtensions
     ,...((true || runOnTs) ? ['.ts' ,'.tsx'] : [])
@@ -42,8 +39,6 @@ export function preprocessSvelte({
     ,includeGlobs)
   const createdFiles = new Set<string>()
   const writer: ts.WriteFileCallback = (dest ,dtsCode ,writeByteOrderMark) => {
-    if (!isSubpathOf(dest ,outDir)) throw new Error(`Attempt to create typing file outside of declarationDir! ${relPathJson(dest)}`)
-
     if (dtsCode === undefined) {
       console.error(`Failed to generate d.ts file ${relPathJson(dest)}`)
     }

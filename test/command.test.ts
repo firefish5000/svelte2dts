@@ -113,7 +113,11 @@ describe('command' ,() => {
         const run = spawnSync(binPath ,args ,{
           cwd: simpleProjectPath
           ,shell: true
+          ,encoding: 'utf8'
         })
+        if (run.status !== 0) console.log('run ' ,args ,' error' ,run.stdout)
+        if (run.status !== 0) console.log('run ' ,args ,' error' ,run.stderr)
+
         expect(run.status).toEqual(0)
       })
       it('generates valid svelte.d.ts files' ,() => {
@@ -144,7 +148,11 @@ describe('command' ,() => {
         const run = spawnSync(binPath ,args ,{
           cwd: simpleProjectPath
           ,shell: true
+          ,encoding: 'utf8'
         })
+        if (run.status !== 0) console.log('run ' ,args ,' error' ,run.stdout)
+        if (run.status !== 0) console.log('run ' ,args ,' error' ,run.stderr)
+
         expect(run.status).toEqual(0)
       })
       it('generates valid svelte.d.ts files' ,() => {

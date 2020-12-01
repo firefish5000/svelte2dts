@@ -50,7 +50,7 @@ class Svelte2Dts extends Command {
     })
     ,declarationDir: oFlags.string({
       'description': `Where we should write the d.ts files. ${
-        tsCompilerConfig.strict === undefined
+        tsCompilerConfig.declarationDir === undefined
           ? 'You could also set compilerOptions.declarationDir in your tsconfig.json'
           : 'Default uses compilerOptions.declarationDir from your tsconfig.json'
       }`
@@ -80,7 +80,7 @@ class Svelte2Dts extends Command {
     const { flags ,argv } = this.parse(Svelte2Dts)
     const { dryRun ,overwrite ,runOnTs } = flags
     const srcDirs = argv
-    const outDir = flags.declarationDir
+    const { declarationDir } = flags
 
     if (dryRun) {
       this.log('Dry run enabled, will not change anything!')
@@ -91,16 +91,15 @@ class Svelte2Dts extends Command {
       this.log(`Using tsconfig ${relPathJson(tsConfigFilePath)}`)
     }
     this.log(`Generating declarations for svelte files ${
-      JSON.stringify(srcDirs)
+      JSON.stringify(srcDirs.map(relativePath))
     } -> ${
-      relPathJson(outDir)
+      relPathJson(declarationDir)
     }.${dryRun ? ' (dry run)' : ''}`)
 
     tsCompilerConfig.emitDeclarationOnly = true
 
     preprocessSvelte({
       includeGlobs: srcDirs
-      ,outDir
       ,runOnTs
       ,svelteExtensions: flags.extensions
       ,dryRun
