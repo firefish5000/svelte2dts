@@ -25,7 +25,7 @@ After installing, you can invoke the command via npx or package.json.
 ### Via CLI
 Read all svelte files from `./src` and generate d.ts files in `./types`
 ```sh
-npx svelte2dts --overwrite --runOnTS --declarationDir ./types ./src
+npx svelte2dts --overwrite --runOnTs --declarationDir ./types ./src
 ```
 Show help
 ```sh
@@ -57,7 +57,7 @@ Be sure to set declarationDir and outDir to different locations.
 
 Note that with the above setup, you no longer need to specify `--declarationDir` in the command!
 ```sh
-npx svelte2dts --overwrite --runOnTS ./src
+npx svelte2dts --overwrite --runOnTs ./src
 ```
 
 ## Purpose
